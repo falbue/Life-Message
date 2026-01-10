@@ -40,7 +40,7 @@ def handle_join_call(data):
     if not chat_id:
         return
 
-    sid = request.sid
+    sid = request.sid  # type: ignore
     room = CALL_ROOMS.setdefault(chat_id, set())
 
     room.add(sid)
@@ -50,7 +50,12 @@ def handle_join_call(data):
     other_peers = [s for s in room if s != sid]
     socketio.emit("peers", {"peers": other_peers}, to=sid)
     socketio.emit("call_joined", {"chat_id": chat_id, "count": len(room)}, to=sid)
-    socketio.emit("participant_joined", {"chat_id": chat_id, "count": len(room), "peer_id": sid}, room=chat_id, include_self=False)
+    socketio.emit(
+        "participant_joined",
+        {"chat_id": chat_id, "count": len(room), "peer_id": sid},
+        to=chat_id,
+        include_self=False,
+    )
 
 
 @socketio.on("leave_call")
@@ -59,7 +64,7 @@ def handle_leave_call(data):
     if not chat_id:
         return
 
-    sid = request.sid
+    sid = request.sid # type: ignore
     room = CALL_ROOMS.get(chat_id)
     if room and sid in room:
         room.discard(sid)
@@ -67,8 +72,16 @@ def handle_leave_call(data):
             CALL_ROOMS.pop(chat_id, None)
         SID_ROOMS.get(sid, set()).discard(chat_id)
         leave_room(chat_id)
-        socketio.emit("call_left", {"chat_id": chat_id, "count": len(room) if room else 0}, to=chat_id)
-        socketio.emit("peer_left", {"peer_id": sid, "chat_id": chat_id, "count": len(room) if room else 0}, room=chat_id)
+        socketio.emit(
+            "call_left",
+            {"chat_id": chat_id, "count": len(room) if room else 0},
+            to=chat_id,
+        )
+        socketio.emit(
+            "peer_left",
+            {"peer_id": sid, "chat_id": chat_id, "count": len(room) if room else 0},
+            to=chat_id,
+        )
 
 
 @socketio.on("disconnect")
@@ -81,8 +94,16 @@ def handle_disconnect():
             room.discard(sid)
             if not room:
                 CALL_ROOMS.pop(chat_id, None)
-            socketio.emit("call_left", {"chat_id": chat_id, "count": len(room) if room else 0}, to=chat_id)
-            socketio.emit("peer_left", {"peer_id": sid, "chat_id": chat_id, "count": len(room) if room else 0}, room=chat_id)
+            socketio.emit(
+                "call_left",
+                {"chat_id": chat_id, "count": len(room) if room else 0},
+                to=chat_id,
+            )
+            socketio.emit(
+                "peer_left",
+                {"peer_id": sid, "chat_id": chat_id, "count": len(room) if room else 0},
+                to=chat_id,
+            )
 
 
 @socketio.on("signal")
