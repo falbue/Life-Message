@@ -3,6 +3,7 @@ import socketClient from '../socket-client.js';
 import * as media from './media.js';
 import * as rtc from './rtc.js';
 import * as ui from './ui.js';
+import { handleFileAnnounced, handleFileRemoved, handlePeerLeft } from '../files/fileShare.js';
 
 const socket = socketClient.socket;
 let joined = false;
@@ -11,13 +12,23 @@ let currentCount = 0;
 export function isJoined() { return joined; }
 export function getCurrentCount() { return currentCount; }
 
+function refreshUI() {
+    ui.updateUI(
+        joined,
+        currentCount,
+        media.getLocalStream(),
+        media.isVideoActive(),
+        media.isScreenShareActive()
+    );
+}
+
 export function initCallManager() {
     if (!socket) return;
 
     socket.on('call_joined', (data) => {
         joined = true;
         currentCount = data.count || currentCount;
-        ui.updateUI(joined, currentCount, media.getLocalStream());
+        refreshUI();
     });
 
     socket.on('peers', async (data) => {
@@ -26,7 +37,10 @@ export function initCallManager() {
             try {
                 const pc = rtc.createPeerConnection(pid, socket);
                 if (media.getLocalStream()) {
-                    for (const t of media.getLocalStream().getTracks()) pc.addTrack(t, media.getLocalStream());
+                    for (const t of media.getLocalStream().getTracks()) {
+                        const already = pc.getSenders().some(s => s.track === t);
+                        if (!already) pc.addTrack(t, media.getLocalStream());
+                    }
                 } else {
                     try {
                         pc.addTransceiver('audio', { direction: 'recvonly' });
@@ -52,7 +66,10 @@ export function initCallManager() {
         if (payload.type === 'offer') {
             pc = rtc.createPeerConnection(from, socket);
             if (media.getLocalStream()) {
-                for (const t of media.getLocalStream().getTracks()) pc.addTrack(t, media.getLocalStream());
+                for (const t of media.getLocalStream().getTracks()) {
+                    const already = pc.getSenders().some(s => s.track === t);
+                    if (!already) pc.addTrack(t, media.getLocalStream());
+                }
             } else {
                 try {
                     pc.addTransceiver('audio', { direction: 'recvonly' });
@@ -87,14 +104,17 @@ export function initCallManager() {
 
     socket.on('participant_joined', (data) => {
         currentCount = data.count || currentCount;
-        ui.updateUI(joined, currentCount, media.getLocalStream());
+        refreshUI();
     });
 
     socket.on('peer_left', (data) => {
         const peerId = data && data.peer_id;
-        if (peerId) rtc.removePeer(peerId);
+        if (peerId) {
+            rtc.removePeer(peerId);
+            handlePeerLeft(peerId);
+        }
         currentCount = data.count || 0;
-        ui.updateUI(joined, currentCount, media.getLocalStream());
+        refreshUI();
     });
 
     socket.on('call_left', (data) => {
@@ -103,8 +123,12 @@ export function initCallManager() {
             joined = false;
             rtc.closeAllPeerConnections();
         }
-        ui.updateUI(joined, currentCount, media.getLocalStream());
+        refreshUI();
     });
+
+    // File sharing events
+    socket.on('file_announced', (data) => handleFileAnnounced(data));
+    socket.on('file_removed', (data) => handleFileRemoved(data));
 }
 
 export async function joinCall() {
@@ -114,7 +138,7 @@ export async function joinCall() {
 
     await media.ensureLocalStream();
     socket.emit('join_call', { chat_id });
-    ui.updateUI(joined, currentCount, media.getLocalStream());
+    refreshUI();
 }
 
 export function leaveCall() {
@@ -122,24 +146,25 @@ export function leaveCall() {
     const chat_id = window.CHAT_ID;
     if (!chat_id) return;
     socket.emit('leave_call', { chat_id });
-    // Закрываем peer-соединения
     rtc.closeAllPeerConnections();
 
-    // Останавливаем локальные медиатреки (микрофон/камера) и очищаем поток
     try {
         const localStream = media.getLocalStream();
         if (localStream) {
             for (const t of localStream.getTracks()) {
                 try { t.stop(); } catch (e) { /* ignore */ }
             }
-            // Сбрасываем ссылку в модуле media
             media.setLocalStream(null);
         }
     } catch (e) {
         console.warn('Ошибка при остановке локального потока', e);
     }
 
+    // Stop video too
+    media.disableVideo();
+    ui.updateLocalVideo(null);
+
     joined = false;
     currentCount = 0;
-    ui.updateUI(joined, currentCount, media.getLocalStream());
+    refreshUI();
 }

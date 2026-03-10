@@ -117,5 +117,37 @@ def handle_signal(data):
     socketio.emit("signal", {"from": frm, "payload": payload}, to=target)
 
 
+@socketio.on("file_announce")
+def handle_file_announce(data):
+    chat_id = data.get("chat_id")
+    if not chat_id:
+        return
+    socketio.emit(
+        "file_announced",
+        {
+            "id": data.get("id"),
+            "name": data.get("name"),
+            "size": data.get("size"),
+            "mime": data.get("mime"),
+            "sender_id": request.sid,
+        },
+        to=chat_id,
+        include_self=False,
+    )
+
+
+@socketio.on("file_remove")
+def handle_file_remove(data):
+    chat_id = data.get("chat_id")
+    if not chat_id:
+        return
+    socketio.emit(
+        "file_removed",
+        {"id": data.get("id"), "sender_id": request.sid},
+        to=chat_id,
+        include_self=False,
+    )
+
+
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=1100, debug=False)

@@ -1,6 +1,8 @@
 {% extends "base.html" %} {% block title %}Life Message{% endblock %} {% block
 content %}
 <main>
+    <div id="videoGrid" class="video-grid hidden"></div>
+
     <div class="chat">
         <p id="displayMessage"></p>
     </div>
@@ -10,17 +12,57 @@ content %}
             <div class="list"></div>
             <div class="w-line"></div>
         </div>
+
+        <!-- File panel -->
+        <div id="filePanel" class="file-panel hidden">
+            <div id="dropZone" class="drop-zone">
+                <i class="iconoir-cloud-upload"></i>
+                <span>Перетащите файлы или нажмите</span>
+                <input type="file" id="fileInput" multiple style="display:none">
+            </div>
+            <div class="file-lists">
+                <div class="file-section">
+                    <p class="file-section-title">Мои файлы</p>
+                    <div id="localFileList" class="file-list"></div>
+                </div>
+                <div class="file-section">
+                    <p class="file-section-title">Файлы собеседников</p>
+                    <div id="remoteFileList" class="file-list"></div>
+                </div>
+            </div>
+            <div class="w-line"></div>
+        </div>
+
+        <!-- Video source picker (hidden by default) -->
+        <div id="videoSourcePanel" class="video-source-panel hidden">
+            <button id="startCameraButton">
+                <i class="iconoir-video-camera"></i>
+                <span>Камера</span>
+            </button>
+            <button id="startScreenButton">
+                <i class="iconoir-multiple-pages"></i>
+                <span>Экран</span>
+            </button>
+            <div class="w-line"></div>
+        </div>
+
         <nav>
             <h3 class="inline copy"></h3>
             <div class="buttons">
                 <button id="muteButton" class="hidden">
                     <i class="iconoir-microphone-mute-solid"></i>
                 </button>
-                <!-- <button id="videoCallButton" class="hidden">
+                <button id="videoButton" class="hidden">
                     <i class="iconoir-video-camera"></i>
-                </button> -->
+                </button>
+                <button id="switchCameraButton" class="hidden" title="Сменить камеру">
+                    <i class="iconoir-refresh-circle"></i>
+                </button>
                 <button id="audioCallButton">
                     <i class="iconoir-phone"></i>
+                </button>
+                <button id="fileButton" title="Файлы">
+                    <i class="iconoir-attachment"></i>
                 </button>
                 <button id="shareButton">
                     <i class="iconoir-share-android"></i>
@@ -52,4 +94,5 @@ content %}
 <script src="{{ url_for('static', filename='scripts/message/copy.js') }}" defer></script>
 <script src="{{ url_for('static', filename='scripts/ui/clear.js') }}" defer></script>
 <script type="module" src="{{ url_for('static', filename='scripts/calls/main.js') }}" defer></script>
+<script type="module" src="{{ url_for('static', filename='scripts/files/filePanel.js') }}" defer></script>
 {% endblock %}

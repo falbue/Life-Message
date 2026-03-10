@@ -276,3 +276,204 @@ code {
     background-color: rgba(0, 0, 0, 0.2);
     padding: 4px 6px;
 }
+
+/* ── Video grid ──────────────────────────────────────────────────────────────── */
+
+.video-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 12px;
+    background-color: var(--input);
+    max-height: 40dvh;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.video-tile {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #000;
+    flex: 1 1 calc(50% - 8px);
+    min-width: 120px;
+    aspect-ratio: 16/9;
+}
+
+.video-tile video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.video-tile--local {
+    flex: 0 0 160px;
+    aspect-ratio: 4/3;
+    border: 2px solid var(--soft-purple);
+}
+
+@media (max-width: 480px) {
+    .video-tile {
+        flex: 1 1 100%;
+    }
+    .video-tile--local {
+        flex: 0 0 120px;
+    }
+}
+
+/* Active video button highlight */
+button#videoButton.active {
+    background-color: var(--red);
+    color: var(--white);
+}
+
+/* ── Video source picker ─────────────────────────────────────────────────────── */
+
+.video-source-panel {
+    display: flex;
+    gap: 8px;
+    padding-bottom: 6px;
+    flex-direction: column;
+}
+
+.video-source-panel > button {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 10px 16px;
+}
+
+.video-source-panel > button > span {
+    font-size: 1rem;
+}
+
+/* ── File panel ──────────────────────────────────────────────────────────────── */
+
+.file-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 6px;
+    max-height: 45dvh;
+    overflow: hidden;
+}
+
+.drop-zone {
+    border: 2px dashed var(--soft-purple);
+    border-radius: 10px;
+    padding: 14px 20px;
+    text-align: center;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-color);
+    opacity: 0.7;
+    transition: opacity 0.2s, border-color 0.2s;
+    font-size: 0.95rem;
+}
+
+.drop-zone i {
+    font-size: 1.6rem;
+}
+
+.drop-zone.dragover,
+.drop-zone:hover {
+    opacity: 1;
+    border-color: var(--pale-mauve);
+}
+
+.file-lists {
+    display: flex;
+    gap: 12px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+}
+
+.file-section {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.file-section-title {
+    font-size: 0.75rem;
+    opacity: 0.5;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0 2px;
+}
+
+.file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow-y: auto;
+    max-height: 140px;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.file-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+    gap: 2px;
+}
+
+.file-name {
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-color);
+}
+
+.file-size {
+    font-size: 0.75rem;
+    opacity: 0.5;
+    color: var(--text-color);
+}
+
+.file-empty {
+    font-size: 0.85rem;
+    opacity: 0.4;
+    padding: 4px 2px;
+}
+
+.file-progress {
+    font-size: 0.85rem;
+    opacity: 0.7;
+    white-space: nowrap;
+}
+
+.file-remove-btn,
+.file-download-btn {
+    flex-shrink: 0;
+    font-size: 1rem !important;
+    padding: 4px !important;
+    width: auto !important;
+    height: auto !important;
+}
+
+@media (max-width: 480px) {
+    .file-lists {
+        flex-direction: column;
+    }
+}

@@ -8,4 +8,4 @@ import * as ui from './ui.js';
 initCallManager();
 
 // Первичное обновление UI (локальный стрим может быть ещё null)
-ui.updateUI(isJoined(), getCurrentCount(), media.getLocalStream());
+ui.updateUI(isJoined(), getCurrentCount(), media.getLocalStream(), media.isVideoActive(), media.isScreenShareActive());
