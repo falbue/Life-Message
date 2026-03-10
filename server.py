@@ -64,7 +64,7 @@ def handle_leave_call(data):
     if not chat_id:
         return
 
-    sid = request.sid # type: ignore
+    sid = request.sid  # type: ignore
     room = CALL_ROOMS.get(chat_id)
     if room and sid in room:
         room.discard(sid)
@@ -150,4 +150,4 @@ def handle_file_remove(data):
 
 
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=1100, debug=False)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=False)
