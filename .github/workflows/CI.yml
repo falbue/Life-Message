@@ -1,0 +1,107 @@
+name: Сборка проекта
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+
+
+jobs:
+  check-tags:
+    runs-on: ubuntu-latest
+    outputs:
+        tag: ${{ steps.version.outputs.tag }}
+        release: ${{ steps.version.outputs.release }}
+    steps:
+      - name: Скачивание репозитория
+        uses: actions/checkout@v4
+
+      - name: Определение версии
+        id: version
+        run: |
+          tag=false
+          release=false
+          # Определяем, что было выбрано: branch или tag
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
+            echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
+            SEGMENTS=$(echo "$TAG_NAME" | tr '.' '\n' | wc -l)
+            if [ "$SEGMENTS" -le 3 ]; then
+              echo "release=true" >> $GITHUB_OUTPUT
+            else
+              echo "release=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "tag=false" >> $GITHUB_OUTPUT
+            echo "release=false" >> $GITHUB_OUTPUT
+          fi
+  build:
+    needs: check-tags
+    if: needs.check-tags.outputs.tag != 'false'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Скачивание репозитория
+        uses: actions/checkout@v4
+
+      - name: Вход в GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Сборка и публикация образа
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ needs.check-tags.outputs.tag }}
+            ghcr.io/${{ github.repository }}:latest
+
+  create-release:
+    runs-on: ubuntu-latest
+    needs: check-tags
+    if: needs.check-tags.outputs.release == 'true'
+    permissions:
+      contents: write
+    steps:
+      - name: Создание релиза
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.check-tags.outputs.tag }}
+          name: Релиз ${{ needs.check-tags.outputs.tag }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy:
+    needs: [check-tags, build]
+    if: needs.check-tags.outputs.tag != 'false' && success()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Обновление деплоя через Deploy API
+        env:
+          DEPLOY_API_URL: https://deploy.falbue.ru
+          DEPLOY_API_KEY: ${{ secrets.DEPLOY_API_KEY }}
+          DEPLOYMENT_ID: ${{ secrets.DEPLOYMENT_ID }}
+          TAG: ${{ needs.check-tags.outputs.tag }}
+        run: |
+          if [ -z "$DEPLOY_API_URL" ] || [ -z "$DEPLOY_API_KEY" ] || [ -z "$DEPLOYMENT_ID" ]; then
+            echo "Не заданы DEPLOY_API_URL, DEPLOY_API_KEY или DEPLOYMENT_ID"
+            exit 1
+          fi
+
+          PAYLOAD=$(jq -nc --arg tag "$TAG" '{"tag": $tag}')
+
+          curl --fail-with-body -sS -X POST \
+            -H "Content-Type: application/json" \
+            -H "X-API-Key: $DEPLOY_API_KEY" \
+            -d "$PAYLOAD" \
+            "$DEPLOY_API_URL/deployments/$DEPLOYMENT_ID/redeploy"
+
+          echo "✅ Deploy API: redeploy выполнен для deployment_id=$DEPLOYMENT_ID, tag=$TAG"
