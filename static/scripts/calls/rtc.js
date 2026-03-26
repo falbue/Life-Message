@@ -8,12 +8,7 @@ export function createPeerConnection(peerId, socket) {
     const iceServers = [
         { urls: "stun:stun.l.google.com:19302" },
         {
-            urls: ["turn:turn.falbue.ru:3478"],
-            username: "turnuser",
-            credential: "StrongPass123"
-        },
-        {
-            urls: ["turns:turn.falbue.ru:5349"],
+            urls: ["turn:turn.falbue.ru:1501"],
             username: "turnuser",
             credential: "StrongPass123"
         }
