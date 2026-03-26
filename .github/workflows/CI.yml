@@ -54,14 +54,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Нормализация имени образа в нижний регистр
+        id: image
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
       - name: Сборка и публикация образа
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:${{ needs.check-tags.outputs.tag }}
-            ghcr.io/${{ github.repository }}:latest
+            ${{ steps.image.outputs.name }}:${{ needs.check-tags.outputs.tag }}
+            ${{ steps.image.outputs.name }}:latest
 
   create-release:
     runs-on: ubuntu-latest
