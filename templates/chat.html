@@ -1,55 +1,96 @@
-{% extends "base.html" %} {% block title %}Life Message{% endblock %} {% block
-content %}
-<main>
-    <div class="chat">
-        <p id="displayMessage"></p>
-    </div>
+<!doctype html>
 
-    <div class="input-message">
-        <div class="commands hidden">
-            <div class="list"></div>
-            <div class="w-line"></div>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <title>Чат</title>
+    <meta name="description"
+        content="Анонимный чат в реальном времени. Общайтесь свободно, без истории переписки и идентификации!" />
+    <meta name="keywords" content="chat, anonymous, chatroom" />
+    <meta name="author" content="falbue" />
+    <meta name="robots" content="nofollow, nofollow" />
+
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <meta charset="UTF-8" />
+    <link rel="icon" href="{{ url_for('static', filename='icons/favicon.svg') }}" type="image/png" />
+
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/iconoir-icons/iconoir@main/css/iconoir.css" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('.static', filename='css/chat.css') }}" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css"
+        media="(prefers-color-scheme: light)">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css"
+        media="(prefers-color-scheme: dark)">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&family=Ubuntu+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/project-PDE/cdn@0.2.1.1/css/main.css">
+    <script type="module" src="https://cdn.jsdelivr.net/gh/project-PDE/cdn@0.2.1.1/js/main.js"></script>
+
+</head>
+
+<body>
+    <main>
+        <div class="chat">
+            <p id="displayMessage"></p>
         </div>
-        <nav>
-            <h3 class="inline copy"></h3>
-            <div class="buttons">
-                <button id="muteButton" class="hidden">
-                    <i class="iconoir-microphone-mute-solid"></i>
-                </button>
-                <!-- <button id="videoCallButton" class="hidden">
+
+        <div class="input-message">
+            <div class="commands hidden">
+                <div class="list"></div>
+                <div class="w-line"></div>
+            </div>
+            <div class="between">
+                <h4 class="inline copy"></h4>
+                <nav class="buttons">
+                    <button id="muteButton" class="hidden">
+                        <i class="iconoir-microphone-mute-solid"></i>
+                    </button>
+                    <!-- <button id="videoCallButton" class="hidden">
                     <i class="iconoir-video-camera"></i>
                 </button> -->
-                <button id="audioCallButton">
-                    <i class="iconoir-phone"></i>
-                </button>
-                <button id="shareButton">
-                    <i class="iconoir-share-android"></i>
-                </button>
+                    <button id="audioCallButton">
+                        <i class="iconoir-phone"></i>
+                    </button>
+                    <button id="shareButton">
+                        <i class="iconoir-share-android"></i>
+                    </button>
+                </nav>
             </div>
-        </nav>
-        <div class="textarea-wrapper">
-            <div class="resize-handle"><i class="iconoir-menu"></i></div>
-            <div class="input-area">
-                <textarea rows="1" id="inputMessage" placeholder="Введите сообщение..." inputmode="text"></textarea>
-                <button id="exec" class="hidden" title="Выполнить команду">
-                    <i class="iconoir-send"></i>
-                </button>
-                <button id="reset" class="ghost">
-                    <i class="iconoir-xmark"></i>
-                </button>
+            <div class="textarea-wrapper">
+                <div class="resize-handle"><i class="iconoir-menu"></i></div>
+                <div class="input-area">
+                    <textarea rows="1" id="inputMessage" placeholder="Введите сообщение..." inputmode="text"></textarea>
+                    <button id="exec" class="hidden" title="Выполнить команду">
+                        <i class="iconoir-send"></i>
+                    </button>
+                    <button id="reset" class="ghost">
+                        <i class="iconoir-xmark"></i>
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-</main>
+    </main>
 
+
+</body>
 <script>window.CHAT_ID = "{{ chat_id }}";</script>
 
 <script type="module" src="{{ url_for('static', filename='scripts/message/main.js') }}"></script>
 <script type="module" src="{{ url_for('static', filename='scripts/commands/dispatch.js') }}" defer></script>
 <script src="{{ url_for('static', filename='scripts/share.js') }}"></script>
 <script src="{{ url_for('static', filename='scripts/ui/resize.js') }}"></script>
-<script src="{{ url_for('static', filename='scripts/ui/notification.js') }}" defer></script>
 <script src="{{ url_for('static', filename='scripts/message/copy.js') }}" defer></script>
 <script src="{{ url_for('static', filename='scripts/ui/clear.js') }}" defer></script>
 <script type="module" src="{{ url_for('static', filename='scripts/calls/main.js') }}" defer></script>
-{% endblock %}
+
+</html>

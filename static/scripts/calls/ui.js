@@ -19,8 +19,10 @@ export function updateUI(joined, currentCount, localStream) {
     if (!audioBtn) return;
     if (joined) {
         audioBtn.title = 'Выйти из звонка';
+        audioBtn.className = "red"
         audioBtn.innerHTML = '<i class="iconoir-phone-disabled"></i>';
     } else {
+        audioBtn.className = "";
         audioBtn.title = 'Войти в звонок';
         audioBtn.innerHTML = '<i class="iconoir-phone"></i>';
     }

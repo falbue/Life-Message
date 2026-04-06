@@ -1,4 +1,3 @@
-import uuid
 from flask import Flask, render_template
 from flask_socketio import SocketIO, join_room, leave_room
 from flask import request
@@ -12,8 +11,7 @@ socketio = SocketIO(app, async_mode="eventlet")
 
 @app.route("/")
 def index():
-    chat_id = uuid.uuid4().hex
-    return render_template("index.html", chat_id=chat_id)
+    return render_template("index.html")
 
 
 @app.route("/chat/<chat_id>")
@@ -118,4 +116,4 @@ def handle_signal(data):
 
 
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=5000, debug=False)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True)

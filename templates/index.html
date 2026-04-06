@@ -1,18 +1,60 @@
-{% extends "base.html" %} {% block title %}Life Message{% endblock %} {% block
-content %}
+<!doctype html>
+<html lang="ru">
 
-<main>
-    <section class="center">
-        <div class="hero">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <title>Life Message</title>
+    <meta name="description"
+        content="Анонимный чат в реальном времени. Общайтесь свободно, без истории переписки и идентификации!" />
+    <meta name="keywords" content="chat, anonymous, chatroom" />
+    <meta name="author" content="falbue" />
+    <meta name="robots" content="index, nofollow" />
+
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <meta charset="UTF-8" />
+    <link rel="icon" href="{{ url_for('static', filename='icons/favicon.svg') }}" type="image/png" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/iconoir-icons/iconoir@main/css/iconoir.css" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css"
+        media="(prefers-color-scheme: light)">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css"
+        media="(prefers-color-scheme: dark)">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/project-PDE/cdn@0.2.1.1/css/main.css">
+    <script src="https://cdn.jsdelivr.net/gh/project-PDE/cdn@0.2.1.1/js/main.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap"
+        rel="stylesheet">
+
+    <script src="{{ url_for('static', filename='scripts/login-chat.js') }}"></script>
+
+</head>
+
+<body>
+    <main>
+        <section class="hero">
             <div>
-                <h1>Life Message</h1>
-                <h2>Общение в реальном времени!</h2>
+                <header class="column">
+                    <h1>Life Message</h1>
+                    <h2>Общение в реальном времени!</h2>
+                </header>
+                <div class="column w100 card-list">
+                    <input type="text" placeholder="Введите ID чата" id="chat-id">
+                    <button>
+                        <h3>Открыть чат</h3>
+                    </button>
+                </div>
             </div>
-            <a href="{{ url_for('.chat', chat_id=chat_id) }}" class="button">
-                <h3>Создать комнату</h3>
-            </a>
-        </div>
-    </section>
-</main>
+        </section>
+    </main>
+</body>
 
-{% endblock %}
+</html>

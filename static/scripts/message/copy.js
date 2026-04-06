@@ -23,7 +23,6 @@
         if (!pre) return;
         e.preventDefault();
         var code = pre.querySelector('code');
-        // Если установлен data-full — копируем полный (не маскированный) id/текст
         var text = (pre.dataset && pre.dataset.full) ? pre.dataset.full : (code ? code.innerText : pre.innerText || '');
         text = (text || '').trim();
         if (!text) return;

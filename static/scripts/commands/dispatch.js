@@ -40,10 +40,11 @@ import commands from './index.js';
 
         filtered.forEach((cmd, idx) => {
             const item = document.createElement('div');
-            item.className = 'item';
+            item.className = 'command item align-center';
             item.tabIndex = 0;
             item.dataset.index = idx;
-            item.innerHTML = `\n                <h4 class="name">${escapeHtml(cmd.name)}</h4>\n                <p class="desc">${escapeHtml(cmd.desc || '')}</p>\n            `;
+            item.innerHTML = `<h4 class="name">${escapeHtml(cmd.name)}</h4>
+            <p class="placeholder">${escapeHtml(cmd.desc || '')}</p>`;
             item.addEventListener('click', () => selectAndInsert(idx));
 
             item.addEventListener('mouseenter', () => {
