@@ -3,10 +3,16 @@ import socketClient from '../socket-client.js';
 import * as media from './media.js';
 import * as rtc from './rtc.js';
 import * as ui from './ui.js';
+import * as video from './video.js';
 
 const socket = socketClient.socket;
 let joined = false;
 let currentCount = 0;
+
+function hasActiveVideoMedia() {
+    const state = video.getVideoState();
+    return !!state.cameraActive || !!state.screenActive;
+}
 
 export function isJoined() { return joined; }
 export function getCurrentCount() { return currentCount; }
@@ -17,7 +23,7 @@ export function initCallManager() {
     socket.on('call_joined', (data) => {
         joined = true;
         currentCount = data.count || currentCount;
-        ui.updateUI(joined, currentCount, media.getLocalStream());
+        ui.updateUI(joined, currentCount, media.getLocalStream(), video.getVideoState());
     });
 
     socket.on('peers', async (data) => {
@@ -26,13 +32,7 @@ export function initCallManager() {
             try {
                 const pc = rtc.createPeerConnection(pid, socket);
                 if (media.getLocalStream()) {
-                    for (const t of media.getLocalStream().getTracks()) pc.addTrack(t, media.getLocalStream());
-                } else {
-                    try {
-                        pc.addTransceiver('audio', { direction: 'recvonly' });
-                    } catch (e) {
-                        console.warn('addTransceiver not supported or failed', e);
-                    }
+                    rtc.addLocalTracksToPeer(pid, media.getLocalStream());
                 }
                 const offer = await pc.createOffer();
                 await pc.setLocalDescription(offer);
@@ -52,19 +52,21 @@ export function initCallManager() {
         if (payload.type === 'offer') {
             pc = rtc.createPeerConnection(from, socket);
             if (media.getLocalStream()) {
-                for (const t of media.getLocalStream().getTracks()) pc.addTrack(t, media.getLocalStream());
-            } else {
-                try {
-                    pc.addTransceiver('audio', { direction: 'recvonly' });
-                } catch (e) {
-                    console.warn('addTransceiver not supported or failed', e);
-                }
+                rtc.addLocalTracksToPeer(from, media.getLocalStream());
             }
             try {
                 await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
                 const answer = await pc.createAnswer();
                 await pc.setLocalDescription(answer);
                 socket.emit('signal', { to: from, payload: { type: 'answer', sdp: pc.localDescription } });
+
+                if (hasActiveVideoMedia()) {
+                    setTimeout(() => {
+                        if (rtc.pcs[from]) {
+                            rtc.renegotiatePeer(from, socket);
+                        }
+                    }, 0);
+                }
             } catch (err) {
                 console.error('Ошибка при обработке offer', err);
             }
@@ -87,14 +89,14 @@ export function initCallManager() {
 
     socket.on('participant_joined', (data) => {
         currentCount = data.count || currentCount;
-        ui.updateUI(joined, currentCount, media.getLocalStream());
+        ui.updateUI(joined, currentCount, media.getLocalStream(), video.getVideoState());
     });
 
     socket.on('peer_left', (data) => {
         const peerId = data && data.peer_id;
         if (peerId) rtc.removePeer(peerId);
         currentCount = data.count || 0;
-        ui.updateUI(joined, currentCount, media.getLocalStream());
+        ui.updateUI(joined, currentCount, media.getLocalStream(), video.getVideoState());
     });
 
     socket.on('call_left', (data) => {
@@ -103,7 +105,7 @@ export function initCallManager() {
             joined = false;
             rtc.closeAllPeerConnections();
         }
-        ui.updateUI(joined, currentCount, media.getLocalStream());
+        ui.updateUI(joined, currentCount, media.getLocalStream(), video.getVideoState());
     });
 }
 
@@ -114,7 +116,7 @@ export async function joinCall() {
 
     await media.ensureLocalStream();
     socket.emit('join_call', { chat_id });
-    ui.updateUI(joined, currentCount, media.getLocalStream());
+    ui.updateUI(joined, currentCount, media.getLocalStream(), video.getVideoState());
 }
 
 export function leaveCall() {
@@ -124,6 +126,7 @@ export function leaveCall() {
     socket.emit('leave_call', { chat_id });
     // Закрываем peer-соединения
     rtc.closeAllPeerConnections();
+    video.resetVideoMedia();
 
     // Останавливаем локальные медиатреки (микрофон/камера) и очищаем поток
     try {
@@ -141,5 +144,5 @@ export function leaveCall() {
 
     joined = false;
     currentCount = 0;
-    ui.updateUI(joined, currentCount, media.getLocalStream());
+    ui.updateUI(joined, currentCount, media.getLocalStream(), video.getVideoState());
 }

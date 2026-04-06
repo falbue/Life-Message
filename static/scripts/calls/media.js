@@ -2,7 +2,21 @@
 let localStream = null;
 
 export async function ensureLocalStream() {
-    if (localStream) return localStream;
+    if (localStream) {
+        if (localStream.getAudioTracks().length > 0) return localStream;
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            for (const t of stream.getAudioTracks()) {
+                t.enabled = true;
+                localStream.addTrack(t);
+            }
+            return localStream;
+        } catch (err) {
+            console.warn('Не удалось добавить доступ к микрофону', err);
+            return localStream;
+        }
+    }
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         // По умолчанию микрофон включен
