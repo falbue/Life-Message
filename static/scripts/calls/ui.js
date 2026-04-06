@@ -6,48 +6,30 @@ const screenBtn = document.getElementById('screenButton');
 const observedRemoteStreams = new WeakSet();
 
 function ensureCallMediaRoot() {
-    const chat = document.querySelector('.chat');
-    if (!chat) return null;
-
     let root = document.getElementById('callMedia');
-    if (root) return root;
+    if (root) {
+        return root;
+    }
 
     root = document.createElement('div');
     root.id = 'callMedia';
-    root.className = 'call-media hidden';
+    root.className = 'hidden';
 
     const localHost = document.createElement('div');
     localHost.id = 'callLocalMedia';
-    localHost.className = 'call-media__local-stack';
 
     const remoteHost = document.createElement('div');
     remoteHost.id = 'callRemoteMedia';
-    remoteHost.className = 'call-media__remote-grid';
 
-    root.append(localHost, remoteHost);
+    root.append(remoteHost, localHost);
 
-    const displayMessage = document.getElementById('displayMessage');
-    if (displayMessage && displayMessage.parentElement === chat) {
-        chat.insertBefore(root, displayMessage.nextSibling);
-    } else {
-        chat.prepend(root);
+    const textarea = document.getElementById('textarea');
+    if (textarea) {
+        textarea.prepend(root);
     }
 
     return root;
 }
-
-function updateCallMediaVisibility() {
-    const root = document.getElementById('callMedia');
-    if (!root) return;
-
-    const localHost = document.getElementById('callLocalMedia');
-    const remoteHost = document.getElementById('callRemoteMedia');
-    const hasLocal = !!localHost && localHost.childElementCount > 0;
-    const hasRemote = !!remoteHost && !!remoteHost.querySelector('.call-media__remote-item');
-
-    root.classList.toggle('hidden', !hasLocal && !hasRemote);
-}
-
 function upsertRemoteStreamElement(stream, peerId, preferredKind = null) {
     const root = ensureCallMediaRoot();
     if (!root) return null;
@@ -65,16 +47,15 @@ function upsertRemoteStreamElement(stream, peerId, preferredKind = null) {
         if (!item || item.tagName !== 'DIV') {
             if (item) item.remove();
             item = document.createElement('div');
-            item.className = 'call-media__remote-item';
             item.dataset.peerId = peerId;
             item.dataset.streamId = stream.id;
             remoteHost.appendChild(item);
         }
 
         let video = item.querySelector('video');
+
         if (!video) {
             video = document.createElement('video');
-            video.className = 'call-media__preview';
             video.autoplay = true;
             video.playsInline = true;
             video.muted = true;
@@ -85,8 +66,6 @@ function upsertRemoteStreamElement(stream, peerId, preferredKind = null) {
         if (video.srcObject !== stream) {
             video.srcObject = stream;
         }
-
-        updateCallMediaVisibility();
         return item;
     }
 
@@ -105,7 +84,6 @@ function upsertRemoteStreamElement(stream, peerId, preferredKind = null) {
         audio.srcObject = stream;
     }
 
-    updateCallMediaVisibility();
     return audio;
 }
 
@@ -148,18 +126,9 @@ export function renderLocalMedia(streamEntries = []) {
         if (!entry || !entry.stream) continue;
 
         const item = document.createElement('div');
-        item.className = 'call-media__local-item';
         item.dataset.mediaKind = entry.kind || 'video';
 
-        if (entry.label) {
-            const label = document.createElement('span');
-            label.className = 'call-media__label';
-            label.textContent = entry.label;
-            item.appendChild(label);
-        }
-
         const video = document.createElement('video');
-        video.className = 'call-media__preview';
         video.autoplay = true;
         video.playsInline = true;
         video.muted = true;
@@ -168,8 +137,6 @@ export function renderLocalMedia(streamEntries = []) {
         item.appendChild(video);
         localHost.appendChild(item);
     }
-
-    updateCallMediaVisibility();
 }
 
 export function createMediaElementForStream(stream, peerId, incomingTrackKind = null) {
@@ -181,7 +148,6 @@ export function createMediaElementForStream(stream, peerId, incomingTrackKind = 
 export function removeMediaElementsForPeer(peerId) {
     const els = document.querySelectorAll(`[data-peer-id="${peerId}"]`);
     els.forEach((el) => el.remove());
-    updateCallMediaVisibility();
 }
 
 export const createAudioElementForStream = createMediaElementForStream;
@@ -194,6 +160,10 @@ export function updateUI(joined, currentCount, localStream, mediaState = {}) {
             audioBtn.className = 'red';
             audioBtn.innerHTML = '<i class="iconoir-phone-disabled"></i>';
         } else {
+            const root = document.getElementById('callMedia');
+            if (root) {
+                root.classList.add('hidden');
+            }
             audioBtn.className = '';
             audioBtn.title = 'Войти в звонок';
             audioBtn.innerHTML = '<i class="iconoir-phone"></i>';

@@ -34,6 +34,7 @@ main {
     font-size: clamp(1rem, 4vw, 1.25rem);
 }
 
+
 .input-message {
     padding: 8px 8px 16px 8px;
     padding-bottom: 16px;
@@ -96,4 +97,55 @@ textarea::placeholder {
 .active {
     background-color: var(--border);
     border-radius: 4px;
+}
+
+/* Новые стили */
+video {
+    max-width: 160px;
+    aspect-ratio: 16 / 9;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+#callMedia {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+#callRemoteMedia {}
+
+#callLocalMedia,
+#callRemoteMedia {
+    flex: 1 1 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* Скрываем блоки, если внутри нет элементов */
+#callLocalMedia:empty,
+#callRemoteMedia:empty {
+    display: none;
+}
+
+video.big {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: contain;
+    z-index: 9998;
+    background: #000;
+    cursor: default;
+    max-width: 100vw;
+}
+
+.video-close {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 9999;
 }
