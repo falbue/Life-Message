@@ -28,8 +28,22 @@ function ensureCallMediaRoot() {
         textarea.prepend(root);
     }
 
+    updateCallMediaVisibility();
     return root;
 }
+
+function updateCallMediaVisibility() {
+    const root = document.getElementById('callMedia');
+    if (!root) return;
+
+    const localHost = document.getElementById('callLocalMedia');
+    const remoteHost = document.getElementById('callRemoteMedia');
+    const hasLocal = !!localHost && localHost.childElementCount > 0;
+    const hasRemote = !!remoteHost && !!remoteHost.querySelector('.call-media__remote-item');
+
+    root.classList.toggle('hidden')
+}
+
 function upsertRemoteStreamElement(stream, peerId, preferredKind = null) {
     const root = ensureCallMediaRoot();
     if (!root) return null;
@@ -66,6 +80,7 @@ function upsertRemoteStreamElement(stream, peerId, preferredKind = null) {
         if (video.srcObject !== stream) {
             video.srcObject = stream;
         }
+        updateCallMediaVisibility();
         return item;
     }
 
@@ -84,6 +99,7 @@ function upsertRemoteStreamElement(stream, peerId, preferredKind = null) {
         audio.srcObject = stream;
     }
 
+    updateCallMediaVisibility();
     return audio;
 }
 
@@ -137,6 +153,7 @@ export function renderLocalMedia(streamEntries = []) {
         item.appendChild(video);
         localHost.appendChild(item);
     }
+    updateCallMediaVisibility();
 }
 
 export function createMediaElementForStream(stream, peerId, incomingTrackKind = null) {
@@ -156,6 +173,7 @@ export const removeAudioElementsForPeer = removeMediaElementsForPeer;
 export function updateUI(joined, currentCount, localStream, mediaState = {}) {
     if (audioBtn) {
         if (joined) {
+            updateCallMediaVisibility();
             audioBtn.title = 'Выйти из звонка';
             audioBtn.className = 'red';
             audioBtn.innerHTML = '<i class="iconoir-phone-disabled"></i>';

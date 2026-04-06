@@ -114,7 +114,9 @@ video {
     gap: 8px;
 }
 
-#callRemoteMedia {}
+#callLocalMedia {
+    justify-content: right;
+}
 
 #callLocalMedia,
 #callRemoteMedia {
