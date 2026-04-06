@@ -39,9 +39,9 @@ function updateCallMediaVisibility() {
     const localHost = document.getElementById('callLocalMedia');
     const remoteHost = document.getElementById('callRemoteMedia');
     const hasLocal = !!localHost && localHost.childElementCount > 0;
-    const hasRemote = !!remoteHost && !!remoteHost.querySelector('.call-media__remote-item');
+    const hasRemote = !!remoteHost && !!remoteHost;
 
-    root.classList.toggle('hidden')
+    root.classList.toggle('hidden', !hasLocal && !hasRemote);
 }
 
 function upsertRemoteStreamElement(stream, peerId, preferredKind = null) {
