@@ -96,9 +96,6 @@ export function createPeerConnection(peerId, socket) {
     return pc;
 }
 
-    }, 2000);
-}
-
 function scheduleReconnect(peerId, socket) {
     // Избегаем множественных переподключений одновременно
     if (reconnectTimers[peerId]) return;
