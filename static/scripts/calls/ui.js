@@ -143,12 +143,16 @@ export function renderLocalMedia(streamEntries = []) {
 
         const item = document.createElement('div');
         item.dataset.mediaKind = entry.kind || 'video';
+        // Добавляем класс для стилизации локального видео
+        item.className = 'local-media-item';
 
         const video = document.createElement('video');
         video.autoplay = true;
         video.playsInline = true;
         video.muted = true;
         video.srcObject = entry.stream;
+        // Отзеркалить только локальное видео для себя
+        video.style.transform = 'scaleX(-1)';
 
         item.appendChild(video);
         localHost.appendChild(item);
@@ -166,9 +170,6 @@ export function removeMediaElementsForPeer(peerId) {
     const els = document.querySelectorAll(`[data-peer-id="${peerId}"]`);
     els.forEach((el) => el.remove());
 }
-
-export const createAudioElementForStream = createMediaElementForStream;
-export const removeAudioElementsForPeer = removeMediaElementsForPeer;
 
 export function updateUI(joined, currentCount, localStream, mediaState = {}) {
     if (audioBtn) {

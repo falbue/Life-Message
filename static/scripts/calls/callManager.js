@@ -41,6 +41,9 @@ export function initCallManager() {
                 console.error('Ошибка создания offer', err);
             }
         }
+
+        // Оптимизируем видео к количеству участников
+        void rtc.optimizeVideoQuality(socket);
     });
 
     socket.on('signal', async (data) => {
@@ -61,9 +64,11 @@ export function initCallManager() {
                 socket.emit('signal', { to: from, payload: { type: 'answer', sdp: pc.localDescription } });
 
                 if (hasActiveVideoMedia()) {
-                    setTimeout(() => {
+                    setTimeout(async () => {
                         if (rtc.pcs[from]) {
-                            rtc.renegotiatePeer(from, socket);
+                            await rtc.renegotiatePeer(from, socket);
+                            // Оптимизируем видео к количеству участников
+                            void rtc.optimizeVideoQuality(socket);
                         }
                     }, 0);
                 }
@@ -90,6 +95,9 @@ export function initCallManager() {
     socket.on('participant_joined', (data) => {
         currentCount = data.count || currentCount;
         ui.updateUI(joined, currentCount, media.getLocalStream(), video.getVideoState());
+
+        // Оптимизируем видео к количеству участников
+        void rtc.optimizeVideoQuality(socket);
     });
 
     socket.on('peer_left', (data) => {

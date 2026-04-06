@@ -3,6 +3,7 @@ import { createMediaElementForStream, removeMediaElementsForPeer } from './ui.js
 
 export const pcs = {}; // RTCPeerConnections by peer id (sid)
 const trackSenders = {};
+const reconnectTimers = {};
 
 function ensureRecvTransceiver(pc, kind) {
     try {
@@ -58,6 +59,11 @@ export function createPeerConnection(peerId, socket) {
                 ev.track.onended = refresh;
                 ev.track.onmute = refresh;
                 ev.track.onunmute = refresh;
+
+                // Убедимся что аудиотреки всегда активны (unless explicitly disabled)
+                if (ev.track.kind === 'audio' && !ev.track.enabled) {
+                    ev.track.enabled = true;
+                }
             }
         }
     };
@@ -68,8 +74,61 @@ export function createPeerConnection(peerId, socket) {
         }
     };
 
+    // Мониторим состояние соединения для автоматического переподключения
+    pc.onconnectionstatechange = () => {
+        console.log(`Соединение с ${peerId}: ${pc.connectionState}`);
+
+        if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+            // Планируем переподключение
+            scheduleReconnect(peerId, socket);
+        }
+    };
+
+    pc.oniceconnectionstatechange = () => {
+        console.log(`ICE соединение с ${peerId}: ${pc.iceConnectionState}`);
+
+        if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
+            scheduleReconnect(peerId, socket);
+        }
+    };
+
     pcs[peerId] = pc;
     return pc;
+}
+
+    }, 2000);
+}
+
+function scheduleReconnect(peerId, socket) {
+    // Избегаем множественных переподключений одновременно
+    if (reconnectTimers[peerId]) return;
+
+    reconnectTimers[peerId] = setTimeout(async () => {
+        delete reconnectTimers[peerId];
+
+        if (!pcs[peerId] || !socket) return;
+
+        try {
+            // Закрываем старое соединение
+            try { pcs[peerId].close(); } catch (e) { }
+            delete pcs[peerId];
+            delete trackSenders[peerId];
+
+            // Создаем новое соединение
+            const pc = createPeerConnection(peerId, socket);
+
+            // Переотправляем локальные треки
+            const localStream = (await import('./media.js')).getLocalStream();
+            if (localStream) {
+                addLocalTracksToPeer(peerId, localStream);
+            }
+
+            // Отправляем новый offer
+            await renegotiatePeer(peerId, socket);
+        } catch (err) {
+            console.error('Ошибка переподключения с', peerId, err);
+        }
+    }, 2000);
 }
 
 export async function renegotiatePeer(peerId, socket) {
@@ -143,5 +202,42 @@ export function removeLocalTracksFromAll(stream) {
     if (!stream) return;
     for (const pid of Object.keys(pcs)) {
         removeLocalTracksFromPeer(pid, stream);
+    }
+}
+
+// Оптимизируем качество видео при количестве участников
+export async function optimizeVideoQuality(socket) {
+    const peerCount = Object.keys(pcs).length;
+
+    // Если много участников, уменьшаем качество
+    for (const peerId of Object.keys(pcs)) {
+        const pc = pcs[peerId];
+        if (!pc) continue;
+
+        try {
+            const senders = pc.getSenders();
+            for (const sender of senders) {
+                if (sender.track && sender.track.kind === 'video') {
+                    const params = sender.getParameters();
+
+                    if (!params.encodings) {
+                        params.encodings = [{}];
+                    }
+
+                    // Разные качества для разного количества участников
+                    if (peerCount > 4) {
+                        params.encodings[0].maxBitrate = 300000; // 300kbps
+                        params.encodings[0].maxFramerate = 15;
+                    } else if (peerCount > 2) {
+                        params.encodings[0].maxBitrate = 600000; // 600kbps
+                        params.encodings[0].maxFramerate = 24;
+                    }
+
+                    await sender.setParameters(params);
+                }
+            }
+        } catch (err) {
+            console.warn(`Не удалось оптимизировать видео для ${peerId}:`, err);
+        }
     }
 }

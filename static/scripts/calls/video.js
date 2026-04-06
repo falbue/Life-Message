@@ -53,7 +53,17 @@ export function getVideoState() {
 export async function startCamera() {
     if (cameraStream) return cameraStream;
 
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    // Определяем параметры видео в зависимости от способности устройства
+    const videoConstraints = {
+        video: {
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            facingMode: 'user'
+        },
+        audio: false
+    };
+
+    const stream = await navigator.mediaDevices.getUserMedia(videoConstraints);
     cameraStream = stream;
 
     const localStream = getCompositeStream();
@@ -77,6 +87,7 @@ export function stopCamera() {
 
     const localStream = media.getLocalStream();
     if (localStream) {
+        // Удаляем только видеотреки, не трогаем аудио!
         for (const track of stream.getVideoTracks()) {
             localStream.removeTrack(track);
         }
@@ -84,7 +95,7 @@ export function stopCamera() {
 
     removeStreamFromPeers(stream);
 
-    for (const track of stream.getTracks()) {
+    for (const track of stream.getVideoTracks()) {
         try {
             track.stop();
         } catch (e) { }
@@ -148,7 +159,8 @@ export function stopScreenShare() {
 
     removeStreamFromPeers(stream);
 
-    for (const track of stream.getTracks()) {
+    // Удаляем только видеотреки
+    for (const track of stream.getVideoTracks()) {
         try {
             track.stop();
         } catch (e) { }
