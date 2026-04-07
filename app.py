@@ -13,6 +13,9 @@ socketio = SocketIO(app, async_mode="eventlet")
 def index():
     return render_template("index.html")
 
+@app.route("/chat")
+def chat_list():
+    return render_template("chat.html")
 
 @app.route("/chat/<chat_id>")
 def chat(chat_id):

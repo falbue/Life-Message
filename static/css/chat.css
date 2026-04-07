@@ -32,6 +32,10 @@ main {
     padding: 12px;
     box-sizing: border-box;
     font-size: clamp(1rem, 4vw, 1.25rem);
+    display: flex;
+    justify-content: center;
+    align-items: safe center;
+    overflow-wrap: anywhere;
 }
 
 
@@ -156,4 +160,8 @@ video.big {
 
 video.big.mirror {
     transform: scaleX(-1);
+}
+
+p .accent {
+    color: var(--soft-purple);
 }

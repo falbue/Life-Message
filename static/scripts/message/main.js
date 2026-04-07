@@ -1,6 +1,7 @@
 import { formatMessage } from './helpers.js';
 import socketClient from '../socket-client.js';
 import { server_command } from './server-command.js';
+import { adjustFontSize } from '../ui/auto-fonts.js';
 
 const chatId = window.location.pathname.split('/').pop();
 const inputMessage = document.getElementById('inputMessage');
@@ -41,6 +42,7 @@ inputMessage?.addEventListener('input', () => {
 sc.onReceive((data) => {
     if (data.sender_id === senderId) return;
     displayMessage.innerHTML = formatMessage(data.text);
+    adjustFontSize();
     const codeBlocks = displayMessage.querySelectorAll('pre code');
     if (window.hljs && codeBlocks.length) {
         codeBlocks.forEach((block) => {
@@ -50,7 +52,7 @@ sc.onReceive((data) => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    server_command('Ожидание пользователя...');
+    server_command('Поделитесь ссылкой, что бы начать общение!');
     const copyEl = document.querySelector('.copy');
     if (copyEl && chatId) {
         const mask = (id => {
