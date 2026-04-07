@@ -33,7 +33,7 @@ sendMessage(`Пользователь ${getUsername()} подключился`);
 inputMessage?.addEventListener('input', () => {
     let messageText = inputMessage.value.trim() || '...';
     const username = getUsername();
-    if (username) {
+    if (username && messageText !== '...') {
         messageText = `**${username}:** ` + messageText;
     }
     sendMessage(messageText);
