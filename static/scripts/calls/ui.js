@@ -1,9 +1,7 @@
-// ui.js — DOM-операции и обновление интерфейса
 const audioBtn = document.getElementById('audioCallButton');
 const muteBtn = document.getElementById('muteButton');
 const videoBtn = document.getElementById('videoButton');
 const screenBtn = document.getElementById('screenButton');
-const observedRemoteStreams = new WeakSet();
 
 function ensureCallMediaRoot() {
     let root = document.getElementById('callMedia');
@@ -39,93 +37,58 @@ function updateCallMediaVisibility() {
     const localHost = document.getElementById('callLocalMedia');
     const remoteHost = document.getElementById('callRemoteMedia');
     const hasLocal = !!localHost && localHost.childElementCount > 0;
-    const hasRemote = !!remoteHost && !!remoteHost;
+    const hasRemote = !!remoteHost && remoteHost.childElementCount > 0;
 
     root.classList.toggle('hidden', !hasLocal && !hasRemote);
 }
 
-function upsertRemoteStreamElement(stream, peerId, preferredKind = null) {
+function getTrackContainer(peerId, trackId, kind) {
     const root = ensureCallMediaRoot();
     if (!root) return null;
 
     const remoteHost = document.getElementById('callRemoteMedia');
     if (!remoteHost) return null;
 
-    const selector = `[data-peer-id="${peerId}"][data-stream-id="${stream.id}"]`;
-    const existing = remoteHost.querySelector(selector);
-    const hasVideo = preferredKind === 'video'
-        || stream.getVideoTracks().some((track) => track.readyState === 'live');
+    const selector = `[data-peer-id="${peerId}"][data-track-id="${trackId}"]`;
+    let item = remoteHost.querySelector(selector);
 
-    if (hasVideo) {
-        let item = existing;
-        if (!item || item.tagName !== 'DIV') {
-            if (item) item.remove();
-            item = document.createElement('div');
-            item.dataset.peerId = peerId;
-            item.dataset.streamId = stream.id;
-            remoteHost.appendChild(item);
-        }
-
-        let video = item.querySelector('video');
-
-        if (!video) {
-            video = document.createElement('video');
-            video.autoplay = true;
-            video.playsInline = true;
-            video.muted = true;
-            item.innerHTML = '';
-            item.appendChild(video);
-        }
-
-        if (video.srcObject !== stream) {
-            video.srcObject = stream;
-        }
-        updateCallMediaVisibility();
-        return item;
+    if (!item) {
+        item = document.createElement(kind === 'audio' ? 'audio' : 'video');
+        item.autoplay = true;
+        item.playsInline = true;
+        item.dataset.peerId = peerId;
+        item.dataset.trackId = trackId;
+        item.dataset.mediaKind = kind;
+        remoteHost.appendChild(item);
     }
 
-    let audio = existing;
-    if (!audio || audio.tagName !== 'AUDIO') {
-        if (audio) audio.remove();
-        audio = document.createElement('audio');
-        audio.autoplay = true;
-        audio.playsInline = true;
-        audio.dataset.peerId = peerId;
-        audio.dataset.streamId = stream.id;
-        remoteHost.appendChild(audio);
-    }
-
-    if (audio.srcObject !== stream) {
-        audio.srcObject = stream;
-    }
-
-    updateCallMediaVisibility();
-    return audio;
+    return item;
 }
 
-function observeRemoteStream(stream, peerId) {
-    if (observedRemoteStreams.has(stream)) return;
-    observedRemoteStreams.add(stream);
+function bindRemoteTrackElement(element, track, stream) {
+    if (!element || !track) return;
 
-    const sync = () => {
-        upsertRemoteStreamElement(stream, peerId);
+    const mediaStream = new MediaStream([track]);
+    if (element.srcObject !== mediaStream) {
+        element.srcObject = mediaStream;
+    }
+
+    const remove = () => {
+        try {
+            element.remove();
+        } catch (e) {
+            // ignore remove errors
+        }
+        updateCallMediaVisibility();
     };
 
-    stream.addEventListener('addtrack', (event) => {
-        const track = event && event.track;
-        if (track) {
-            track.addEventListener('ended', sync);
-            track.addEventListener('mute', sync);
-            track.addEventListener('unmute', sync);
-        }
-        sync();
-    });
-    stream.addEventListener('removetrack', sync);
-
-    for (const track of stream.getTracks()) {
-        track.addEventListener('ended', sync);
-        track.addEventListener('mute', sync);
-        track.addEventListener('unmute', sync);
+    track.onended = remove;
+    if (stream) {
+        stream.addEventListener('removetrack', (event) => {
+            if (event && event.track && event.track.id === track.id) {
+                remove();
+            }
+        });
     }
 }
 
@@ -151,8 +114,10 @@ export function renderLocalMedia(streamEntries = []) {
         video.playsInline = true;
         video.muted = true;
         video.srcObject = entry.stream;
-        // Отзеркалить только локальное видео для себя
-        video.style.transform = 'scaleX(-1)';
+
+        if (entry.label === 'Камера') {
+            video.style.transform = 'scaleX(-1)';
+        }
 
         item.appendChild(video);
         localHost.appendChild(item);
@@ -160,15 +125,43 @@ export function renderLocalMedia(streamEntries = []) {
     updateCallMediaVisibility();
 }
 
-export function createMediaElementForStream(stream, peerId, incomingTrackKind = null) {
+export function createMediaElementForStream(stream, peerId, incomingTrackKind = null, incomingTrack = null) {
     if (!stream) return null;
-    observeRemoteStream(stream, peerId);
-    return upsertRemoteStreamElement(stream, peerId, incomingTrackKind);
+
+    if (incomingTrack) {
+        const trackKind = incomingTrack.kind || incomingTrackKind || 'video';
+        const element = getTrackContainer(peerId, incomingTrack.id, trackKind);
+        bindRemoteTrackElement(element, incomingTrack, stream);
+        updateCallMediaVisibility();
+        return element;
+    }
+
+    const tracks = stream.getTracks();
+    const elements = [];
+
+    for (const track of tracks) {
+        const trackKind = track.kind || incomingTrackKind || 'video';
+        const element = getTrackContainer(peerId, track.id, trackKind);
+        bindRemoteTrackElement(element, track, stream);
+        elements.push(element);
+    }
+
+    updateCallMediaVisibility();
+    return elements;
 }
 
 export function removeMediaElementsForPeer(peerId) {
     const els = document.querySelectorAll(`[data-peer-id="${peerId}"]`);
     els.forEach((el) => el.remove());
+    updateCallMediaVisibility();
+}
+
+export function clearRemoteMedia() {
+    const remoteHost = document.getElementById('callRemoteMedia');
+    if (remoteHost) {
+        remoteHost.innerHTML = '';
+    }
+    updateCallMediaVisibility();
 }
 
 export function updateUI(joined, currentCount, localStream, mediaState = {}) {

@@ -1,46 +1,13 @@
-// video.js — подключение камеры и демонстрации экрана
-import socketClient from '../socket-client.js';
 import * as media from './media.js';
 import * as rtc from './rtc.js';
-import * as ui from './ui.js';
 
 let cameraStream = null;
 let screenStream = null;
 
-function getSocket() {
-    return socketClient.socket;
-}
-
-function getCompositeStream() {
-    let localStream = media.getLocalStream();
-    if (!localStream) {
-        localStream = new MediaStream();
-        media.setLocalStream(localStream);
-    }
-    return localStream;
-}
-
-function renderPreview() {
-    ui.renderLocalMedia([
-        cameraStream ? { label: 'Камера', kind: 'video', stream: cameraStream } : null,
-        screenStream ? { label: 'Экран', kind: 'video', stream: screenStream } : null,
-    ].filter(Boolean));
-}
-
-function pushStreamToPeers(stream) {
-    rtc.addLocalTracksToAll(stream);
-    const socket = getSocket();
-    if (socket) {
-        void rtc.renegotiateAllPeers(socket);
-    }
-}
-
-function removeStreamFromPeers(stream) {
-    rtc.removeLocalTracksFromAll(stream);
-    const socket = getSocket();
-    if (socket) {
-        void rtc.renegotiateAllPeers(socket);
-    }
+async function syncAfterTrackChange() {
+    rtc.syncLocalTracksToAll(media.getLocalStream());
+    await rtc.renegotiateAllPeers();
+    await rtc.optimizeVideoQuality();
 }
 
 export function getVideoState() {
@@ -50,58 +17,50 @@ export function getVideoState() {
     };
 }
 
+export function getLocalPreviewEntries() {
+    return [
+        cameraStream ? { label: 'Камера', kind: 'video', stream: cameraStream } : null,
+        screenStream ? { label: 'Экран', kind: 'video', stream: screenStream } : null,
+    ].filter(Boolean);
+}
+
 export async function startCamera() {
     if (cameraStream) return cameraStream;
-
-    // Определяем параметры видео в зависимости от способности устройства
     const videoConstraints = {
         video: {
             width: { ideal: 640 },
             height: { ideal: 480 },
-            facingMode: 'user'
+            facingMode: 'user',
         },
-        audio: false
+        audio: false,
     };
 
     const stream = await navigator.mediaDevices.getUserMedia(videoConstraints);
     cameraStream = stream;
 
-    const localStream = getCompositeStream();
-    for (const track of stream.getVideoTracks()) {
-        localStream.addTrack(track);
-    }
-
-    pushStreamToPeers(stream);
-    renderPreview();
+    media.ensureLocalStream();
+    media.addTracksToLocalStream(stream.getVideoTracks());
+    await syncAfterTrackChange();
     return cameraStream;
 }
 
 export function stopCamera() {
-    if (!cameraStream) {
-        renderPreview();
-        return;
-    }
+    if (!cameraStream) return;
 
     const stream = cameraStream;
     cameraStream = null;
 
-    const localStream = media.getLocalStream();
-    if (localStream) {
-        // Удаляем только видеотреки, не трогаем аудио!
-        for (const track of stream.getVideoTracks()) {
-            localStream.removeTrack(track);
-        }
-    }
-
-    removeStreamFromPeers(stream);
+    media.removeTracksFromLocalStream(stream.getVideoTracks());
 
     for (const track of stream.getVideoTracks()) {
         try {
             track.stop();
-        } catch (e) { }
+        } catch (e) {
+            // ignore stop errors
+        }
     }
 
-    renderPreview();
+    void syncAfterTrackChange();
 }
 
 export async function toggleCamera() {
@@ -120,10 +79,8 @@ export async function startScreenShare() {
     const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
     screenStream = stream;
 
-    const localStream = getCompositeStream();
-    for (const track of stream.getVideoTracks()) {
-        localStream.addTrack(track);
-    }
+    media.ensureLocalStream();
+    media.addTracksToLocalStream(stream.getVideoTracks());
 
     const [screenTrack] = stream.getVideoTracks();
     if (screenTrack) {
@@ -132,41 +89,31 @@ export async function startScreenShare() {
         };
     }
 
-    pushStreamToPeers(stream);
-    renderPreview();
+    await syncAfterTrackChange();
     return screenStream;
 }
 
 export function stopScreenShare() {
-    if (!screenStream) {
-        renderPreview();
-        return;
-    }
+    if (!screenStream) return;
 
     const stream = screenStream;
     screenStream = null;
 
-    const localStream = media.getLocalStream();
-    if (localStream) {
-        for (const track of stream.getVideoTracks()) {
-            localStream.removeTrack(track);
-        }
-    }
+    media.removeTracksFromLocalStream(stream.getVideoTracks());
 
     for (const track of stream.getVideoTracks()) {
         track.onended = null;
     }
 
-    removeStreamFromPeers(stream);
-
-    // Удаляем только видеотреки
     for (const track of stream.getVideoTracks()) {
         try {
             track.stop();
-        } catch (e) { }
+        } catch (e) {
+            // ignore stop errors
+        }
     }
 
-    renderPreview();
+    void syncAfterTrackChange();
 }
 
 export async function toggleScreenShare() {
@@ -188,5 +135,14 @@ export function resetVideoMedia() {
 
     cameraStream = null;
     screenStream = null;
-    ui.renderLocalMedia([]);
+}
+
+export function stopAllVideo() {
+    if (screenStream) {
+        stopScreenShare();
+    }
+    if (cameraStream) {
+        stopCamera();
+    }
+    resetVideoMedia();
 }

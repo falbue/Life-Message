@@ -1,12 +1,11 @@
-// controls.js — обработчики кнопок (вызов, микрофон)
 import * as callManager from './callManager.js';
-import * as media from './media.js';
-import * as rtc from './rtc.js';
-import * as ui from './ui.js';
-import * as video from './video.js';
 
-function refreshUI() {
-    ui.updateUI(callManager.isJoined(), callManager.getCurrentCount(), media.getLocalStream(), video.getVideoState());
+function notify(text) {
+    if (typeof window.notification === 'function') {
+        window.notification(text);
+        return;
+    }
+    console.warn(text);
 }
 
 const audioBtn = document.getElementById('audioCallButton');
@@ -21,11 +20,10 @@ const videoBtnEl = document.getElementById('videoButton');
 if (videoBtnEl) {
     videoBtnEl.addEventListener('click', async () => {
         try {
-            await video.toggleCamera();
-            refreshUI();
+            await callManager.toggleCamera();
         } catch (err) {
             console.error('Ошибка при попытке подключить камеру', err);
-            notification('Камера недоступна');
+            notify('Камера недоступна');
         }
     });
 }
@@ -34,11 +32,10 @@ const screenBtnEl = document.getElementById('screenButton');
 if (screenBtnEl) {
     screenBtnEl.addEventListener('click', async () => {
         try {
-            await video.toggleScreenShare();
-            refreshUI();
+            await callManager.toggleScreenShare();
         } catch (err) {
             console.error('Ошибка при попытке подключить экран', err);
-            notification('Демонстрация экрана недоступна');
+            notify('Демонстрация экрана недоступна');
         }
     });
 }
@@ -46,25 +43,14 @@ if (screenBtnEl) {
 const muteBtnEl = document.getElementById('muteButton');
 if (muteBtnEl) {
     muteBtnEl.addEventListener('click', async () => {
-        if (!media.getLocalStream()) {
-            try {
-                const stream = await media.ensureLocalStream();
-                if (stream) {
-                    rtc.addLocalTracksToAll(stream);
-                }
-            } catch (err) {
-                console.error('Ошибка при попытке получить микрофон', err);
+        try {
+            const state = await callManager.toggleMute();
+            if (!state.available) {
+                notify('Микрофон недоступен');
             }
-        }
-
-        const localStream = media.getLocalStream();
-        if (localStream) {
-            const tracks = localStream.getAudioTracks();
-            const anyEnabled = tracks.some((t) => t.enabled);
-            for (const t of tracks) t.enabled = !anyEnabled;
-            refreshUI();
-        } else {
-            notification('Микрофон не доступен');
+        } catch (err) {
+            console.error('Ошибка при переключении микрофона', err);
+            notify('Микрофон недоступен');
         }
     });
 }

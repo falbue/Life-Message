@@ -1,33 +1,83 @@
-// media.js — управление локальным медиапотоком
 let localStream = null;
 
-export async function ensureLocalStream() {
-    if (localStream) {
-        if (localStream.getAudioTracks().length > 0) return localStream;
+function ensureCompositeStream() {
+    if (!localStream) {
+        localStream = new MediaStream();
+    }
+    return localStream;
+}
 
+export async function ensureMicrophone() {
+    const stream = ensureCompositeStream();
+    const liveAudioTracks = stream.getAudioTracks().filter((track) => track.readyState === 'live');
+
+    if (liveAudioTracks.length > 0) {
+        for (const track of liveAudioTracks) {
+            track.enabled = true;
+        }
+        return stream;
+    }
+
+    try {
+        const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        for (const track of micStream.getAudioTracks()) {
+            track.enabled = true;
+            stream.addTrack(track);
+        }
+        return stream;
+    } catch (err) {
+        console.warn('Не удалось получить доступ к микрофону', err);
+        return stream;
+    }
+}
+
+export async function toggleMicrophone() {
+    await ensureMicrophone();
+
+    const stream = getLocalStream();
+    if (!stream) {
+        return { available: false, enabled: false };
+    }
+
+    const tracks = stream.getAudioTracks().filter((track) => track.readyState === 'live');
+    if (tracks.length === 0) {
+        return { available: false, enabled: false };
+    }
+
+    const currentlyEnabled = tracks.some((track) => track.enabled);
+    const nextEnabled = !currentlyEnabled;
+    for (const track of tracks) {
+        track.enabled = nextEnabled;
+    }
+
+    return { available: true, enabled: nextEnabled };
+}
+
+export function addTracksToLocalStream(tracks = []) {
+    const stream = ensureCompositeStream();
+    const existingIds = new Set(stream.getTracks().map((track) => track.id));
+
+    for (const track of tracks) {
+        if (!track || existingIds.has(track.id)) continue;
+        stream.addTrack(track);
+    }
+
+    return stream;
+}
+
+export function removeTracksFromLocalStream(tracks = []) {
+    if (!localStream) return;
+    for (const track of tracks) {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            for (const t of stream.getAudioTracks()) {
-                t.enabled = true;
-                localStream.addTrack(t);
-            }
-            return localStream;
-        } catch (err) {
-            console.warn('Не удалось добавить доступ к микрофону', err);
-            return localStream;
+            localStream.removeTrack(track);
+        } catch (e) {
+            // ignore remove errors
         }
     }
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        // По умолчанию микрофон включен
-        for (const t of stream.getAudioTracks()) t.enabled = true;
-        localStream = stream;
-        return localStream;
-    } catch (err) {
-        console.warn('Не удалось получить доступ к микрофону — останемся без микрофона', err);
-        localStream = null;
-        return null;
-    }
+}
+
+export function ensureLocalStream() {
+    return ensureCompositeStream();
 }
 
 export function getLocalStream() {
@@ -36,4 +86,18 @@ export function getLocalStream() {
 
 export function setLocalStream(stream) {
     localStream = stream;
+}
+
+export function stopAndClearLocalStream() {
+    if (!localStream) return;
+
+    for (const track of localStream.getTracks()) {
+        try {
+            track.stop();
+        } catch (e) {
+            // ignore stop errors
+        }
+    }
+
+    localStream = null;
 }

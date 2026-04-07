@@ -1,173 +1,98 @@
-// rtc.js — работа с RTCPeerConnection и треками
-import { createMediaElementForStream, removeMediaElementsForPeer } from './ui.js';
+export const pcs = {};
 
-export const pcs = {}; // RTCPeerConnections by peer id (sid)
+let socketRef = null;
+let onRemoteStreamRef = null;
+let getLocalStreamRef = null;
+
 const trackSenders = {};
-const reconnectTimers = {};
+
+function getIceServers() {
+    return [
+        { urls: 'stun:stun.l.google.com:19302' },
+        {
+            urls: ['turn:turn.falbue.ru:1501'],
+            username: 'turnuser',
+            credential: 'StrongPass123',
+        },
+    ];
+}
 
 function ensureRecvTransceiver(pc, kind) {
     try {
-        const hasKind = pc.getTransceivers().some((t) => t.receiver && t.receiver.track && t.receiver.track.kind === kind);
-        if (!hasKind) {
+        const exists = pc.getTransceivers().some((transceiver) => {
+            return transceiver.receiver && transceiver.receiver.track && transceiver.receiver.track.kind === kind;
+        });
+        if (!exists) {
             pc.addTransceiver(kind, { direction: 'recvonly' });
         }
-    } catch (e) {
-        console.warn(`Не удалось добавить ${kind} transceiver`, e);
+    } catch (err) {
+        console.warn(`Не удалось добавить transceiver ${kind}`, err);
     }
 }
 
 function getSenderMap(peerId) {
-    if (!trackSenders[peerId]) trackSenders[peerId] = {};
+    if (!trackSenders[peerId]) {
+        trackSenders[peerId] = {};
+    }
     return trackSenders[peerId];
 }
 
-export function addLocalTracksToPeer(peerId, stream) {
-    const pc = pcs[peerId];
-    if (!pc || !stream) return;
-
-    const senderMap = getSenderMap(peerId);
-    for (const track of stream.getTracks()) {
-        if (senderMap[track.id]) continue;
-        senderMap[track.id] = pc.addTrack(track, stream);
-    }
+function emitSignal(to, payload) {
+    if (!socketRef) return;
+    socketRef.emit('signal', { to, payload });
 }
 
-export function createPeerConnection(peerId, socket) {
+export function initRtc({ socket, onRemoteStream, getLocalStream }) {
+    socketRef = socket || null;
+    onRemoteStreamRef = onRemoteStream || null;
+    getLocalStreamRef = getLocalStream || null;
+}
+
+export function createPeerConnection(peerId) {
     if (pcs[peerId]) return pcs[peerId];
-    const iceServers = [
-        { urls: "stun:stun.l.google.com:19302" },
-        {
-            urls: ["turn:turn.falbue.ru:1501"],
-            username: "turnuser",
-            credential: "StrongPass123"
-        }
-    ];
 
-    const pc = new RTCPeerConnection({ iceServers });
-
-    // Всегда объявляем готовность принимать audio/video даже без локальных треков.
+    const pc = new RTCPeerConnection({ iceServers: getIceServers() });
     ensureRecvTransceiver(pc, 'audio');
     ensureRecvTransceiver(pc, 'video');
 
-    pc.ontrack = (ev) => {
-        if (ev.streams && ev.streams[0]) {
-            const trackKind = ev.track ? ev.track.kind : null;
-            createMediaElementForStream(ev.streams[0], peerId, trackKind);
-
-            const refresh = () => createMediaElementForStream(ev.streams[0], peerId, trackKind);
-            if (ev.track) {
-                ev.track.onended = refresh;
-                ev.track.onmute = refresh;
-                ev.track.onunmute = refresh;
-
-                // Убедимся что аудиотреки всегда активны (unless explicitly disabled)
-                if (ev.track.kind === 'audio' && !ev.track.enabled) {
-                    ev.track.enabled = true;
-                }
-            }
-        }
+    pc.ontrack = (event) => {
+        const stream = event.streams && event.streams[0] ? event.streams[0] : null;
+        if (!stream || !onRemoteStreamRef) return;
+        const kind = event.track ? event.track.kind : null;
+        onRemoteStreamRef(stream, peerId, kind, event.track || null);
     };
 
-    pc.onicecandidate = (ev) => {
-        if (ev.candidate && socket) {
-            socket.emit('signal', { to: peerId, payload: { type: 'ice', candidate: ev.candidate } });
-        }
-    };
-
-    // Мониторим состояние соединения для автоматического переподключения
-    pc.onconnectionstatechange = () => {
-        console.log(`Соединение с ${peerId}: ${pc.connectionState}`);
-
-        if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
-            // Планируем переподключение
-            scheduleReconnect(peerId, socket);
-        }
-    };
-
-    pc.oniceconnectionstatechange = () => {
-        console.log(`ICE соединение с ${peerId}: ${pc.iceConnectionState}`);
-
-        if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
-            scheduleReconnect(peerId, socket);
-        }
+    pc.onicecandidate = (event) => {
+        if (!event.candidate) return;
+        emitSignal(peerId, { type: 'ice', candidate: event.candidate });
     };
 
     pcs[peerId] = pc;
     return pc;
 }
 
-function scheduleReconnect(peerId, socket) {
-    // Избегаем множественных переподключений одновременно
-    if (reconnectTimers[peerId]) return;
+export function syncLocalTracksToPeer(peerId, stream = null) {
+    const pc = pcs[peerId];
+    if (!pc) return;
 
-    reconnectTimers[peerId] = setTimeout(async () => {
-        delete reconnectTimers[peerId];
+    const senderMap = getSenderMap(peerId);
+    const localStream = stream || (getLocalStreamRef ? getLocalStreamRef() : null);
+    const nextTracks = localStream ? localStream.getTracks() : [];
+    const nextTrackIds = new Set(nextTracks.map((track) => track.id));
 
-        if (!pcs[peerId] || !socket) return;
-
+    for (const trackId of Object.keys(senderMap)) {
+        if (nextTrackIds.has(trackId)) continue;
         try {
-            // Закрываем старое соединение
-            try { pcs[peerId].close(); } catch (e) { }
-            delete pcs[peerId];
-            delete trackSenders[peerId];
-
-            // Создаем новое соединение
-            const pc = createPeerConnection(peerId, socket);
-
-            // Переотправляем локальные треки
-            const localStream = (await import('./media.js')).getLocalStream();
-            if (localStream) {
-                addLocalTracksToPeer(peerId, localStream);
-            }
-
-            // Отправляем новый offer
-            await renegotiatePeer(peerId, socket);
+            pc.removeTrack(senderMap[trackId]);
         } catch (err) {
-            console.error('Ошибка переподключения с', peerId, err);
+            // ignore removeTrack errors
         }
-    }, 2000);
-}
-
-export async function renegotiatePeer(peerId, socket) {
-    const pc = pcs[peerId];
-    if (!pc || !socket) return;
-
-    try {
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        socket.emit('signal', { to: peerId, payload: { type: 'offer', sdp: pc.localDescription } });
-    } catch (err) {
-        console.error('Ошибка повторного предложения', err);
+        delete senderMap[trackId];
     }
-}
 
-export async function renegotiateAllPeers(socket) {
-    for (const peerId of Object.keys(pcs)) {
-        await renegotiatePeer(peerId, socket);
-    }
-}
-
-export function addLocalTracksToAll(stream) {
-    if (!stream) return;
-    for (const pid of Object.keys(pcs)) {
-        addLocalTracksToPeer(pid, stream);
-    }
-}
-
-export function removeLocalTracksFromPeer(peerId, stream) {
-    const pc = pcs[peerId];
-    if (!pc || !stream) return;
-
-    const senderMap = trackSenders[peerId];
-    if (!senderMap) return;
-
-    for (const track of stream.getTracks()) {
-        const sender = senderMap[track.id];
-        if (!sender) continue;
-        try {
-            pc.removeTrack(sender);
-        } catch (e) { }
-        delete senderMap[track.id];
+    for (const track of nextTracks) {
+        if (senderMap[track.id]) continue;
+        senderMap[track.id] = pc.addTrack(track, localStream);
     }
 
     if (Object.keys(senderMap).length === 0) {
@@ -175,38 +100,107 @@ export function removeLocalTracksFromPeer(peerId, stream) {
     }
 }
 
-export function closeAllPeerConnections() {
-    Object.keys(pcs).forEach((pid) => {
+export function syncLocalTracksToAll(stream = null) {
+    for (const peerId of Object.keys(pcs)) {
+        syncLocalTracksToPeer(peerId, stream);
+    }
+}
+
+export async function renegotiatePeer(peerId) {
+    const pc = pcs[peerId];
+    if (!pc || !socketRef) return;
+
+    try {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        emitSignal(peerId, { type: 'offer', sdp: pc.localDescription });
+    } catch (err) {
+        console.error('Ошибка при renegotiate peer', err);
+    }
+}
+
+export async function renegotiateAllPeers() {
+    for (const peerId of Object.keys(pcs)) {
+        await renegotiatePeer(peerId);
+    }
+}
+
+export async function connectToPeer(peerId) {
+    const pc = createPeerConnection(peerId);
+    syncLocalTracksToPeer(peerId);
+    await renegotiatePeer(peerId);
+}
+
+export async function connectToPeers(peerIds = []) {
+    for (const peerId of peerIds) {
         try {
-            pcs[pid].close();
-        } catch (e) { }
-        delete pcs[pid];
-        delete trackSenders[pid];
-        removeMediaElementsForPeer(pid);
-    });
+            await connectToPeer(peerId);
+        } catch (err) {
+            console.error('Ошибка подключения к peer', peerId, err);
+        }
+    }
+}
+
+export async function handleSignal(data) {
+    const from = data && data.from;
+    const payload = data && data.payload;
+    if (!from || !payload) return;
+
+    const pc = createPeerConnection(from);
+
+    if (payload.type === 'offer') {
+        try {
+            await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+            syncLocalTracksToPeer(from);
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            emitSignal(from, { type: 'answer', sdp: pc.localDescription });
+        } catch (err) {
+            console.error('Ошибка обработки offer', err);
+        }
+        return;
+    }
+
+    if (payload.type === 'answer') {
+        try {
+            await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+        } catch (err) {
+            console.error('Ошибка обработки answer', err);
+        }
+        return;
+    }
+
+    if (payload.type === 'ice' && payload.candidate) {
+        try {
+            await pc.addIceCandidate(new RTCIceCandidate(payload.candidate));
+        } catch (err) {
+            console.error('Ошибка добавления ICE кандидата', err);
+        }
+    }
 }
 
 export function removePeer(peerId) {
-    if (pcs[peerId]) {
-        try { pcs[peerId].close(); } catch (e) { }
+    const pc = pcs[peerId];
+    if (pc) {
+        try {
+            pc.close();
+        } catch (err) {
+            // ignore close errors
+        }
         delete pcs[peerId];
-        delete trackSenders[peerId];
-        removeMediaElementsForPeer(peerId);
+    }
+    delete trackSenders[peerId];
+}
+
+export function closeAllPeerConnections() {
+    for (const peerId of Object.keys(pcs)) {
+        removePeer(peerId);
     }
 }
 
-export function removeLocalTracksFromAll(stream) {
-    if (!stream) return;
-    for (const pid of Object.keys(pcs)) {
-        removeLocalTracksFromPeer(pid, stream);
-    }
-}
-
-// Оптимизируем качество видео при количестве участников
-export async function optimizeVideoQuality(socket) {
+export async function optimizeVideoQuality() {
     const peerCount = Object.keys(pcs).length;
 
-    // Если много участников, уменьшаем качество
     for (const peerId of Object.keys(pcs)) {
         const pc = pcs[peerId];
         if (!pc) continue;
@@ -214,27 +208,28 @@ export async function optimizeVideoQuality(socket) {
         try {
             const senders = pc.getSenders();
             for (const sender of senders) {
-                if (sender.track && sender.track.kind === 'video') {
-                    const params = sender.getParameters();
+                if (!sender.track || sender.track.kind !== 'video') continue;
 
-                    if (!params.encodings) {
-                        params.encodings = [{}];
-                    }
-
-                    // Разные качества для разного количества участников
-                    if (peerCount > 4) {
-                        params.encodings[0].maxBitrate = 300000; // 300kbps
-                        params.encodings[0].maxFramerate = 15;
-                    } else if (peerCount > 2) {
-                        params.encodings[0].maxBitrate = 600000; // 600kbps
-                        params.encodings[0].maxFramerate = 24;
-                    }
-
-                    await sender.setParameters(params);
+                const parameters = sender.getParameters();
+                if (!parameters.encodings || parameters.encodings.length === 0) {
+                    parameters.encodings = [{}];
                 }
+
+                if (peerCount > 4) {
+                    parameters.encodings[0].maxBitrate = 300000;
+                    parameters.encodings[0].maxFramerate = 15;
+                } else if (peerCount > 2) {
+                    parameters.encodings[0].maxBitrate = 600000;
+                    parameters.encodings[0].maxFramerate = 24;
+                } else {
+                    delete parameters.encodings[0].maxBitrate;
+                    delete parameters.encodings[0].maxFramerate;
+                }
+
+                await sender.setParameters(parameters);
             }
         } catch (err) {
-            console.warn(`Не удалось оптимизировать видео для ${peerId}:`, err);
+            console.warn(`Не удалось оптимизировать видео для ${peerId}`, err);
         }
     }
 }
