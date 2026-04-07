@@ -5,6 +5,7 @@ let onRemoteStreamRef = null;
 let getLocalStreamRef = null;
 
 const trackSenders = {};
+const pendingIceCandidates = {};
 const MAX_REMOTE_VIDEO_TRACKS = 3;
 
 function getIceServers() {
@@ -38,6 +39,29 @@ function getSenderMap(peerId) {
         trackSenders[peerId] = {};
     }
     return trackSenders[peerId];
+}
+
+function getPendingIce(peerId) {
+    if (!pendingIceCandidates[peerId]) {
+        pendingIceCandidates[peerId] = [];
+    }
+    return pendingIceCandidates[peerId];
+}
+
+async function flushPendingIce(peerId) {
+    const pc = pcs[peerId];
+    if (!pc || !pc.remoteDescription) return;
+
+    const queue = getPendingIce(peerId);
+    while (queue.length > 0) {
+        const candidate = queue.shift();
+        if (!candidate) continue;
+        try {
+            await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (err) {
+            console.warn('Ошибка применения отложенного ICE кандидата', err);
+        }
+    }
 }
 
 function emitSignal(to, payload) {
@@ -154,6 +178,7 @@ export async function handleSignal(data) {
     if (payload.type === 'offer') {
         try {
             await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+            await flushPendingIce(from);
             syncLocalTracksToPeer(from);
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
@@ -167,6 +192,7 @@ export async function handleSignal(data) {
     if (payload.type === 'answer') {
         try {
             await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+            await flushPendingIce(from);
         } catch (err) {
             console.error('Ошибка обработки answer', err);
         }
@@ -174,6 +200,10 @@ export async function handleSignal(data) {
     }
 
     if (payload.type === 'ice' && payload.candidate) {
+        if (!pc.remoteDescription) {
+            getPendingIce(from).push(payload.candidate);
+            return;
+        }
         try {
             await pc.addIceCandidate(new RTCIceCandidate(payload.candidate));
         } catch (err) {
@@ -193,6 +223,7 @@ export function removePeer(peerId) {
         delete pcs[peerId];
     }
     delete trackSenders[peerId];
+    delete pendingIceCandidates[peerId];
 }
 
 export function closeAllPeerConnections() {

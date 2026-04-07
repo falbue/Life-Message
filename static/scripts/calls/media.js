@@ -32,16 +32,21 @@ export async function ensureMicrophone() {
 }
 
 export async function toggleMicrophone() {
-    await ensureMicrophone();
+    const stream = ensureCompositeStream();
+    let tracks = stream.getAudioTracks().filter((track) => track.readyState === 'live');
 
-    const stream = getLocalStream();
-    if (!stream) {
-        return { available: false, enabled: false };
-    }
-
-    const tracks = stream.getAudioTracks().filter((track) => track.readyState === 'live');
     if (tracks.length === 0) {
-        return { available: false, enabled: false };
+        try {
+            const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            for (const track of micStream.getAudioTracks()) {
+                track.enabled = true;
+                stream.addTrack(track);
+            }
+            return { available: true, enabled: true, addedTrack: true };
+        } catch (err) {
+            console.warn('Не удалось получить доступ к микрофону', err);
+            return { available: false, enabled: false, addedTrack: false };
+        }
     }
 
     const currentlyEnabled = tracks.some((track) => track.enabled);
@@ -50,7 +55,7 @@ export async function toggleMicrophone() {
         track.enabled = nextEnabled;
     }
 
-    return { available: true, enabled: nextEnabled };
+    return { available: true, enabled: nextEnabled, addedTrack: false };
 }
 
 export function addTracksToLocalStream(tracks = []) {

@@ -9,6 +9,8 @@ const socket = socketClient.socket;
 let joined = false;
 let currentCount = 0;
 let initialized = false;
+let shouldStayInCall = false;
+let reconnectInProgress = false;
 
 function getUIState() {
     return {
@@ -28,6 +30,34 @@ function refreshUI() {
     ui.updateUI(state.joined, state.currentCount, state.localStream, state.videoState);
 }
 
+async function rejoinAfterReconnect(reason = 'reconnect') {
+    if (!socket || !shouldStayInCall || reconnectInProgress) return;
+
+    const chat_id = window.CHAT_ID;
+    if (!chat_id) return;
+
+    reconnectInProgress = true;
+    try {
+        rtc.closeAllPeerConnections();
+        ui.clearRemoteMedia();
+
+        if (!socket.connected && typeof socket.connect === 'function') {
+            socket.connect();
+        }
+
+        if (socket.connected) {
+            socket.emit('join_call', { chat_id });
+        }
+
+        currentCount = 1;
+        joined = true;
+        refreshUI();
+        console.info(`Восстановление звонка: ${reason}`);
+    } finally {
+        reconnectInProgress = false;
+    }
+}
+
 export function initCallManager() {
     if (!socket || initialized) return;
     initialized = true;
@@ -42,6 +72,7 @@ export function initCallManager() {
 
     socket.on('call_joined', (data) => {
         joined = true;
+        shouldStayInCall = true;
         currentCount = data.count || currentCount;
         refreshUI();
     });
@@ -82,6 +113,37 @@ export function initCallManager() {
         refreshUI();
     });
 
+    socket.on('disconnect', () => {
+        if (!shouldStayInCall) return;
+        joined = false;
+        currentCount = 0;
+        rtc.closeAllPeerConnections();
+        ui.clearRemoteMedia();
+        refreshUI();
+    });
+
+    socket.on('connect', async () => {
+        if (!shouldStayInCall) return;
+        await rejoinAfterReconnect('socket-connect');
+    });
+
+    window.addEventListener('online', () => {
+        if (!shouldStayInCall) return;
+        if (socket && !socket.connected && typeof socket.connect === 'function') {
+            socket.connect();
+        }
+        void rejoinAfterReconnect('browser-online');
+    });
+
+    window.addEventListener('offline', () => {
+        if (!shouldStayInCall) return;
+        joined = false;
+        currentCount = 0;
+        rtc.closeAllPeerConnections();
+        ui.clearRemoteMedia();
+        refreshUI();
+    });
+
     window.addEventListener('beforeunload', () => {
         if (joined) {
             leaveCall();
@@ -94,7 +156,13 @@ export async function joinCall() {
     const chat_id = window.CHAT_ID;
     if (!chat_id) return;
 
+    shouldStayInCall = true;
     await media.ensureMicrophone();
+
+    if (!socket.connected && typeof socket.connect === 'function') {
+        socket.connect();
+    }
+
     socket.emit('join_call', { chat_id });
     refreshUI();
 }
@@ -103,6 +171,7 @@ export function leaveCall() {
     if (!socket) return;
     const chat_id = window.CHAT_ID;
     if (!chat_id) return;
+    shouldStayInCall = false;
     socket.emit('leave_call', { chat_id });
 
     rtc.closeAllPeerConnections();
@@ -119,8 +188,12 @@ export function leaveCall() {
 
 export async function toggleMute() {
     const result = await media.toggleMicrophone();
-    rtc.syncLocalTracksToAll(media.getLocalStream());
-    await rtc.renegotiateAllPeers();
+
+    if (result.addedTrack) {
+        rtc.syncLocalTracksToAll(media.getLocalStream());
+        await rtc.renegotiateAllPeers();
+    }
+
     refreshUI();
     return result;
 }
