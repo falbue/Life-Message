@@ -125,6 +125,10 @@ video {
     gap: 8px;
 }
 
+.mirror video {
+    transform: scaleX(-1);
+}
+
 #callLocalMedia:empty,
 #callRemoteMedia:empty {
     display: none;
@@ -148,4 +152,8 @@ video.big {
     top: 10px;
     right: 10px;
     z-index: 9999;
+}
+
+video.big.mirror {
+    transform: scaleX(-1);
 }

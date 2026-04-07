@@ -19,8 +19,8 @@ export function getVideoState() {
 
 export function getLocalPreviewEntries() {
     return [
-        cameraStream ? { label: 'Камера', kind: 'video', stream: cameraStream } : null,
-        screenStream ? { label: 'Экран', kind: 'video', stream: screenStream } : null,
+        cameraStream ? { label: 'Камера', kind: 'video', stream: cameraStream, mirror: true } : null,
+        screenStream ? { label: 'Экран', kind: 'video', stream: screenStream, mirror: false } : null,
     ].filter(Boolean);
 }
 

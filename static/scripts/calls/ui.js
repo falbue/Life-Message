@@ -115,8 +115,8 @@ export function renderLocalMedia(streamEntries = []) {
         video.muted = true;
         video.srcObject = entry.stream;
 
-        if (entry.label === 'Камера') {
-            video.style.transform = 'scaleX(-1)';
+        if (entry.mirror) {
+            item.classList.add('mirror');
         }
 
         item.appendChild(video);
