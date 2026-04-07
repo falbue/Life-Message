@@ -6,6 +6,7 @@ let getLocalStreamRef = null;
 
 const trackSenders = {};
 const pendingIceCandidates = {};
+const audioTransceivers = {};
 const MAX_REMOTE_VIDEO_TRACKS = 3;
 
 function getIceServers() {
@@ -39,6 +40,36 @@ function getSenderMap(peerId) {
         trackSenders[peerId] = {};
     }
     return trackSenders[peerId];
+}
+
+function getLiveAudioTrack(stream) {
+    if (!stream) return null;
+    const tracks = stream.getAudioTracks().filter((track) => track.readyState === 'live');
+    return tracks.length > 0 ? tracks[0] : null;
+}
+
+function ensureAudioTransceiver(peerId, pc) {
+    if (audioTransceivers[peerId]) return audioTransceivers[peerId];
+
+    const transceiver = pc.addTransceiver('audio', { direction: 'sendrecv' });
+    audioTransceivers[peerId] = transceiver;
+    return transceiver;
+}
+
+async function syncAudioTrackToPeer(peerId, stream = null) {
+    const pc = pcs[peerId];
+    if (!pc) return;
+
+    const transceiver = ensureAudioTransceiver(peerId, pc);
+    const localStream = stream || (getLocalStreamRef ? getLocalStreamRef() : null);
+    const audioTrack = getLiveAudioTrack(localStream);
+
+    try {
+        await transceiver.sender.replaceTrack(audioTrack || null);
+        transceiver.direction = audioTrack ? 'sendrecv' : 'recvonly';
+    } catch (err) {
+        console.warn('Не удалось синхронизировать аудиотрек с peer', peerId, err);
+    }
 }
 
 function getPendingIce(peerId) {
@@ -79,7 +110,7 @@ export function createPeerConnection(peerId) {
     if (pcs[peerId]) return pcs[peerId];
 
     const pc = new RTCPeerConnection({ iceServers: getIceServers() });
-    ensureRecvTransceivers(pc, 'audio', 1);
+    ensureAudioTransceiver(peerId, pc);
     ensureRecvTransceivers(pc, 'video', MAX_REMOTE_VIDEO_TRACKS);
 
     pc.ontrack = (event) => {
@@ -102,10 +133,13 @@ export function syncLocalTracksToPeer(peerId, stream = null) {
     const pc = pcs[peerId];
     if (!pc) return;
 
+    void syncAudioTrackToPeer(peerId, stream);
+
     const senderMap = getSenderMap(peerId);
     const localStream = stream || (getLocalStreamRef ? getLocalStreamRef() : null);
     const nextTracks = localStream ? localStream.getTracks() : [];
-    const nextTrackIds = new Set(nextTracks.map((track) => track.id));
+    const nextVideoTracks = nextTracks.filter((track) => track.kind !== 'audio');
+    const nextTrackIds = new Set(nextVideoTracks.map((track) => track.id));
 
     for (const trackId of Object.keys(senderMap)) {
         if (nextTrackIds.has(trackId)) continue;
@@ -117,7 +151,7 @@ export function syncLocalTracksToPeer(peerId, stream = null) {
         delete senderMap[trackId];
     }
 
-    for (const track of nextTracks) {
+    for (const track of nextVideoTracks) {
         if (senderMap[track.id]) continue;
         senderMap[track.id] = pc.addTrack(track, localStream);
     }
@@ -153,8 +187,9 @@ export async function renegotiateAllPeers() {
 }
 
 export async function connectToPeer(peerId) {
-    const pc = createPeerConnection(peerId);
+    createPeerConnection(peerId);
     syncLocalTracksToPeer(peerId);
+    await syncAudioTrackToPeer(peerId);
     await renegotiatePeer(peerId);
 }
 
@@ -180,6 +215,7 @@ export async function handleSignal(data) {
             await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
             await flushPendingIce(from);
             syncLocalTracksToPeer(from);
+            await syncAudioTrackToPeer(from);
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
             emitSignal(from, { type: 'answer', sdp: pc.localDescription });
@@ -224,6 +260,7 @@ export function removePeer(peerId) {
     }
     delete trackSenders[peerId];
     delete pendingIceCandidates[peerId];
+    delete audioTransceivers[peerId];
 }
 
 export function closeAllPeerConnections() {
