@@ -5,6 +5,7 @@ let onRemoteStreamRef = null;
 let getLocalStreamRef = null;
 
 const trackSenders = {};
+const MAX_REMOTE_VIDEO_TRACKS = 3;
 
 function getIceServers() {
     return [
@@ -17,12 +18,14 @@ function getIceServers() {
     ];
 }
 
-function ensureRecvTransceiver(pc, kind) {
+function ensureRecvTransceivers(pc, kind, count = 1) {
     try {
-        const exists = pc.getTransceivers().some((transceiver) => {
+        const existingCount = pc.getTransceivers().filter((transceiver) => {
             return transceiver.receiver && transceiver.receiver.track && transceiver.receiver.track.kind === kind;
-        });
-        if (!exists) {
+        }).length;
+
+        const needToAdd = Math.max(0, count - existingCount);
+        for (let i = 0; i < needToAdd; i += 1) {
             pc.addTransceiver(kind, { direction: 'recvonly' });
         }
     } catch (err) {
@@ -52,8 +55,8 @@ export function createPeerConnection(peerId) {
     if (pcs[peerId]) return pcs[peerId];
 
     const pc = new RTCPeerConnection({ iceServers: getIceServers() });
-    ensureRecvTransceiver(pc, 'audio');
-    ensureRecvTransceiver(pc, 'video');
+    ensureRecvTransceivers(pc, 'audio', 1);
+    ensureRecvTransceivers(pc, 'video', MAX_REMOTE_VIDEO_TRACKS);
 
     pc.ontrack = (event) => {
         const stream = event.streams && event.streams[0] ? event.streams[0] : null;
