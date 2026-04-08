@@ -1,0 +1,38 @@
+{
+    "short_name": "Life Message",
+    "name": "Life Message",
+    "icons": [
+        {
+            "src": "/static/icons/icon-192.png",
+            "type": "image/png",
+            "sizes": "192x192"
+        },
+        {
+            "src": "/static/icons/icon-512.png",
+            "type": "image/png",
+            "sizes": "512x512"
+        }
+    ],
+    "start_url": "/",
+    "background_color": "#CDBCE2",
+    "display": "standalone",
+    "scope": "/",
+    "theme_color": "#000000",
+    "description": "Приватный мессенджер без истории сообщений",
+    "screenshots": [
+        {
+            "src": "/static/icons/mobile.png",
+            "sizes": "750x1334",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "Мобильная версия чата"
+        },
+        {
+            "src": "/static/icons/desktop.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "Десктопная версия чата"
+        }
+    ]
+}

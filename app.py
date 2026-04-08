@@ -1,13 +1,20 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO, join_room, leave_room
 from flask import request
+from pywebpush import webpush, WebPushException
+import json
 
 CALL_ROOMS = {}
 SID_ROOMS = {}
+PUSH_SUBSCRIPTIONS = {}
+
+VAPID_PRIVATE = "PCjUa789q1rNbHDzp1dYWBywFQxatw8KQeRKwWCOaVs"
+VAPID_CLAIMS = {
+    "sub": "mailto:cyansair05@gmail.com"
+}
 
 app = Flask(__name__)
 socketio = SocketIO(app, async_mode="eventlet")
-
 
 @app.route("/")
 def index():
@@ -21,6 +28,57 @@ def chat_list():
 def chat(chat_id):
     return render_template("chat.html", chat_id=chat_id)
 
+@app.route('/sw.js')
+def serve_sw():
+    return send_from_directory(app.static_folder, 'sw.js', mimetype='application/javascript') # type: ignore
+
+@app.route('/manifest.json')
+def serve_manifest():
+    return send_from_directory(app.static_folder, 'manifest.json') # type: ignore
+
+@app.route("/subscribe", methods=["POST"])
+def subscribe():
+    data = request.json
+    chat_id = data.get("chat_id")
+    user_id = data.get("user_id")
+    sub_info = data.get("subscription")
+    
+    if chat_id and user_id and sub_info:
+        if chat_id not in PUSH_SUBSCRIPTIONS:
+            PUSH_SUBSCRIPTIONS[chat_id] = {}
+        PUSH_SUBSCRIPTIONS[chat_id][user_id] = sub_info
+        return {"status": "subscribed"}, 200
+    return {"error": "invalid data"}, 400
+
+@app.route("/send_push", methods=["POST"])
+def send_push():
+    data = request.json
+    chat_id = data.get("chat_id")
+    text = data.get("text")
+    sender_id = data.get("sender_id")
+
+    room_subs = PUSH_SUBSCRIPTIONS.get(chat_id, {})
+    sent_count = 0
+
+    for uid, sub in list(room_subs.items()):
+        if uid != sender_id:
+            try:
+                webpush(
+                    subscription_info=sub,
+                    data=json.dumps({
+                        "title": f"Чат: {chat_id}",
+                        "body": text,
+                        "sender": sender_id
+                    }),
+                    vapid_private_key=VAPID_PRIVATE,
+                    vapid_claims=VAPID_CLAIMS
+                )
+                sent_count += 1
+            except WebPushException as ex:
+                print(f"Удаляем невалидную подписку: {ex}")
+                room_subs.pop(uid, None)
+
+    return {"status": "ok", "sent": sent_count}, 200
 
 @socketio.on("update_message")
 def handle_message(data):
