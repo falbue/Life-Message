@@ -16,7 +16,7 @@ function generateRandomString(length) {
 
         const container = input.closest('.card-list');
         if (container) {
-            const btn = container.querySelector('button');
+            const btn = container.querySelector('#open-chat');
             if (btn && !btn.dataset.handlerAttached) {
                 btn.addEventListener('click', () => {
                     let chatId = input.value.trim();
