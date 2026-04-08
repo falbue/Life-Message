@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const cardList = document.querySelector('.card-list');
     let editChatId = null;
+    let deleteChatId = null;
 
     function getChats() {
         return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
@@ -60,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const editButton = document.createElement('button');
         editButton.type = 'button';
         editButton.className = 'iconoir-edit';
-        editButton.setAttribute('menu', 'edit-contact');
         editButton.setAttribute('menu', 'edit-chat');
 
         const deleteButton = document.createElement('button');
@@ -126,6 +126,33 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
+    function getChatFromCardTarget(target) {
+        const card = target.closest('[data-chat-id]');
+
+        if (!card) {
+            return null;
+        }
+
+        const chats = getChats();
+        return chats.find((chat) => chat.id === card.dataset.chatId) || null;
+    }
+
+    function deleteSelectedChat() {
+        if (!deleteChatId) return;
+
+        const chats = getChats();
+        const updatedChats = chats.filter((chat) => chat.id !== deleteChatId);
+
+        if (updatedChats.length === chats.length) {
+            deleteChatId = null;
+            return;
+        }
+
+        saveChats(updatedChats);
+        deleteChatId = null;
+        renderCards();
+    }
+
     document.addEventListener('click', (e) => {
         if (e.target.id !== 'addUserBtn' && !e.target.closest('#addUserBtn')) return;
 
@@ -138,6 +165,28 @@ document.addEventListener('DOMContentLoaded', () => {
         input.placeholder = 'Имя пользователя';
         usersContainer.appendChild(input);
         input.focus();
+    });
+
+    document.addEventListener('click', (e) => {
+        const editButton = e.target.closest('button[menu="edit-chat"]');
+        const deleteButton = e.target.closest('button[menu="delete-chat"]');
+
+        if (!editButton && !deleteButton) return;
+
+        e.preventDefault();
+
+        const chat = getChatFromCardTarget(e.target);
+        if (!chat) return;
+
+        if (editButton) {
+            editChatId = chat.id;
+            fillEditChatForm(chat);
+            return;
+        }
+
+        if (deleteButton) {
+            deleteChatId = chat.id;
+        }
     });
 
     document.addEventListener('submit', (e) => {
@@ -198,6 +247,14 @@ document.addEventListener('DOMContentLoaded', () => {
         editUsersContainer.innerHTML = '';
         editChatId = null;
         renderCards();
+        return;
+    });
+
+    document.addEventListener('submit', (e) => {
+        if (e.target.id !== 'deleteChatForm') return;
+
+        e.preventDefault();
+        deleteSelectedChat();
     });
 
     document.addEventListener('click', (e) => {
