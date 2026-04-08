@@ -170,7 +170,7 @@ export function updateUI(joined, currentCount, localStream, mediaState = {}) {
             updateCallMediaVisibility();
             audioBtn.title = 'Выйти из звонка';
             audioBtn.className = 'red';
-            audioBtn.innerHTML = '<i class="iconoir-phone-disabled"></i>';
+            audioBtn.className = 'iconoir-phone-disabled';
         } else {
             const root = document.getElementById('callMedia');
             if (root) {
@@ -178,7 +178,7 @@ export function updateUI(joined, currentCount, localStream, mediaState = {}) {
             }
             audioBtn.className = '';
             audioBtn.title = 'Войти в звонок';
-            audioBtn.innerHTML = '<i class="iconoir-phone"></i>';
+            audioBtn.className = 'iconoir-phone'
         }
     }
 
@@ -189,29 +189,29 @@ export function updateUI(joined, currentCount, localStream, mediaState = {}) {
         const enabled = hasStream && localStream.getAudioTracks().some((t) => t.enabled);
         if (!hasStream) {
             muteBtn.title = 'Включить микрофон (попробовать подключить)';
-            muteBtn.innerHTML = '<i class="iconoir-microphone-mute-solid"></i>';
+            // muteBtn.className = 'iconoir-microphone-mute-solid';
         } else if (enabled) {
             muteBtn.title = 'Выключить микрофон';
-            muteBtn.innerHTML = '<i class="iconoir-microphone"></i>';
+            muteBtn.className = 'iconoir-microphone';
         } else {
+            muteBtn.className = 'iconoir-microphone-mute-solid';
             muteBtn.title = 'Включить микрофон';
-            muteBtn.innerHTML = '<i class="iconoir-microphone-mute-solid"></i>';
         }
     }
 
     if (videoBtn) {
+        videoBtn.className = 'iconoir-camera';
         videoBtn.classList.toggle('hidden', !joined);
         const active = !!mediaState.cameraActive;
         videoBtn.classList.toggle('red', active);
         videoBtn.title = active ? 'Выключить камеру' : 'Включить камеру';
-        videoBtn.innerHTML = '<i class="iconoir-camera"></i>';
     }
 
     if (screenBtn) {
+        screenBtn.className = 'iconoir-chromecast';
         screenBtn.classList.toggle('hidden', !joined);
         const active = !!mediaState.screenActive;
         screenBtn.classList.toggle('red', active);
         screenBtn.title = active ? 'Остановить демонстрацию экрана' : 'Поделиться экраном';
-        screenBtn.innerHTML = '<i class="iconoir-chromecast"></i>';
     }
 }
