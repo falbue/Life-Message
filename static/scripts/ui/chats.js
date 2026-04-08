@@ -38,7 +38,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const linkElement = document.createElement('h5');
         linkElement.className = 'inline';
-        linkElement.textContent = chat.link;
+        if (chat.link.length > 10) {
+            const mask = chat.link.slice(0, 3) + '***' + chat.link.slice(-3);
+            linkElement.textContent = mask;
+            console.log("Сработало")
+        } else {
+            linkElement.textContent = chat.link;
+            console.log("Не сработало")
+        }
 
 
         const users = document.createElement('h5');
