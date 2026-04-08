@@ -15,7 +15,7 @@ def index():
 
 @app.route("/chat")
 def chat_list():
-    return render_template("chat.html")
+    return render_template("chats.html")
 
 @app.route("/chat/<chat_id>")
 def chat(chat_id):

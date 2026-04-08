@@ -4,7 +4,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
-    <title>Life Message</title>
+    <title>Чаты</title>
     <meta name="description"
         content="Анонимный чат в реальном времени. Общайтесь свободно, без истории переписки и идентификации!" />
     <meta name="keywords" content="chat, anonymous, chatroom" />
@@ -18,8 +18,9 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/iconoir-icons/iconoir@main/css/iconoir.css" />
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/project-PDE/cdn/css/main.css">
-    <script src="https://cdn.jsdelivr.net/gh/project-PDE/cdn/js/main.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/project-PDE/cdn@0.2.1.6/css/main.css">
+    <script type="module" src="https://cdn.jsdelivr.net/gh/project-PDE/cdn@0.2.1.6/js/main.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,28 +28,18 @@
         href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap"
         rel="stylesheet">
 
-    <script src="{{ url_for('static', filename='scripts/login-chat.js') }}"></script>
+    <script src="{{ url_for ('.static', filename='scripts/ui/contacts.js') }}"></script>
 
 </head>
 
 <body>
     <main>
-        <section class="hero">
-            <div>
-                <header class="column">
-                    <h1>Life Message</h1>
-                    <h2>Общение в реальном времени!</h2>
-                </header>
-                <div class="column w100 card-list">
-                    <input type="text" placeholder="Введите ID чата" id="chat-id">
-                    <nav>
-                        <button class="w100">
-                            <h3> Открыть чат</h3>
-                        </button>
-                        <a class="button" href="/chat">
-                            <h3 class="iconoir-user"></h3>
-                        </a>
-                    </nav>
+        <section>
+            <div class="card-list">
+                <div class="card w100" menu="create-chat">
+                    <main class="center">
+                        <h2 class="iconoir-plus accent"></h2>
+                    </main>
                 </div>
             </div>
         </section>
