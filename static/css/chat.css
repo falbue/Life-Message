@@ -40,15 +40,15 @@ main {
 
 
 .input-message {
-    padding: 8px 8px 16px 8px;
-    padding-bottom: 16px;
+    padding: 12px;
     display: flex;
     flex-direction: column;
     gap: 8px;
     background-color: var(--input);
-    border-radius: 12px 12px 0 0;
+    border-radius: var(--br);
     background-color: var(--background);
     box-shadow: 0px -1px 2px 0px rgba(0, 0, 0, 0.10);
+    margin: 12px 12px 16px 12px;
 }
 
 .resize-handle {
@@ -76,9 +76,7 @@ textarea {
     width: 100%;
     border: none;
     box-sizing: border-box;
-    min-height: 43px;
     max-height: 40dvh;
-    line-height: 1.2em;
     resize: none;
     overflow-y: auto;
     font-size: clamp(1rem, 4vw, 1.25rem);
