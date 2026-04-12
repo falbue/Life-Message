@@ -41,10 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (chat.link.length > 10) {
             const mask = chat.link.slice(0, 3) + '***' + chat.link.slice(-3);
             linkElement.textContent = mask;
-            console.log("Сработало")
         } else {
             linkElement.textContent = chat.link;
-            console.log("Не сработало")
         }
 
 
