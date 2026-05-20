@@ -23,7 +23,7 @@ function generateRandomString(length) {
                     if (!chatId) chatId = input.placeholder;
 
                     if (chatId) {
-                        window.location.href = `/chat/${chatId}`;
+                        window.location.href = `/chat.html#${chatId}`;
                     }
                 });
                 btn.dataset.handlerAttached = "true";

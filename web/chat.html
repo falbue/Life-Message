@@ -10,17 +10,18 @@
     <meta name="keywords" content="chat, anonymous, chatroom" />
     <meta name="author" content="falbue" />
     <meta name="robots" content="nofollow, nofollow" />
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="static/manifest.json">
 
     <meta name="mobile-web-app-capable" content="yes" />
 
     <meta charset="UTF-8" />
-    <link rel="icon" href="{{ url_for('static', filename='icons/favicon.svg') }}" type="image/png" />
-    <link rel="stylesheet" type="text/css" href="{{ url_for('.static', filename='css/chat.css') }}" />
+    <link rel="icon" href="static/icons/favicon.svg" type="image/png" />
+    <link rel="stylesheet" type="text/css" href="static/css/chat.css" />
 
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.0.1/dist/socket.io.min.js"></script>
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/iconoir-icons/iconoir@main/css/iconoir.css" />
+
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css"
         media="(prefers-color-scheme: light)">
@@ -37,6 +38,7 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/project-PDE/cdn@0.2.1.10/css/main.css">
     <script type="module" src="https://cdn.jsdelivr.net/gh/project-PDE/cdn@0.2.1.10/js/main.js"></script>
+
 
 </head>
 
@@ -78,17 +80,14 @@
     </main>
 </body>
 
-<script>window.CHAT_ID = "{{ chat_id }}";</script>
-
-<script type="module" src="{{ url_for('static', filename='scripts/message/main.js') }}"></script>
-<script type="module" src="{{ url_for('static', filename='scripts/commands/dispatch.js') }}" defer></script>
-<script src="{{ url_for('static', filename='scripts/share.js') }}"></script>
-<script src="{{ url_for('static', filename='scripts/ui/resize.js') }}"></script>
-<script src="{{ url_for('static', filename='scripts/message/copy.js') }}" defer></script>
-<script src="{{ url_for('static', filename='scripts/ui/clear.js') }}" defer></script>
-<script src="{{ url_for('static', filename='scripts/ui/resize-video.js') }}" defer></script>
-<script type="module" src="{{ url_for('static', filename='scripts/ui/auto-fonts.js') }}" defer></script>
-<script type="module" src="{{ url_for('static', filename='scripts/calls/main.js') }}" defer></script>
-<script src="{{ url_for ('.static', filename='scripts/ui/chats.js') }}"></script>
+<script type="module" src="static/scripts/message/main.js"></script>
+<script type="module" src="static/scripts/commands/dispatch.js" defer></script>
+<script src="static/scripts/share.js"></script>
+<script src="static/scripts/ui/resize.js"></script>
+<script src="static/scripts/message/copy.js" defer></script>
+<script src="static/scripts/ui/clear.js" defer></script>
+<script src="static/scripts/ui/resize-video.js" defer></script>
+<script type="module" src="static/scripts/ui/auto-fonts.js" defer></script>
+<script type="module" src="static/scripts/calls/main.js" defer></script>
 
 </html>
