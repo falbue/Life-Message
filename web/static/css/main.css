@@ -1,0 +1,17 @@
+footer#custom {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    gap: var(--gap);
+}
+
+footer#custom>a {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    color: var(--light-lavender);
+    font-size: var(--h4);
+}
