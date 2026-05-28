@@ -3,25 +3,21 @@
 
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta charset="UTF-8" />
 
-    <title>Чаты</title>
+    <title>Life Message</title>
     <meta name="description"
-        content="Анонимный чат в реальном времени. Общайтесь свободно, без истории переписки и идентификации!" />
+        content="Анонимный чат в реальном времени. Общайтесь свободно, без истории переписки и идентификации" />
     <meta name="keywords" content="chat, anonymous, chatroom" />
     <meta name="author" content="falbue" />
     <meta name="robots" content="index, nofollow" />
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="static/icons/favicon.svg" type="image/png" />
 
     <meta name="mobile-web-app-capable" content="yes" />
 
-    <meta charset="UTF-8" />
-    <link rel="icon" href="{{ url_for('static', filename='icons/favicon.svg" type="image/png" />
-
+    <!-- сторонние подключения -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/iconoir-icons/iconoir@main/css/iconoir.css" />
-
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/project-PDE/cdn@0.2.1.10/css/main.css">
-    <script type="module" src="https://cdn.jsdelivr.net/gh/project-PDE/cdn@0.2.1.10/js/main.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,22 +25,80 @@
         href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap"
         rel="stylesheet">
 
-    <script src="{{ url_for ('.static', filename='scripts/ui/chats.js"></script>
+    <!-- Мои подключения -->
+    <link rel="stylesheet" href="../cdn/css/main.css">
+    <link rel="stylesheet" href="static/css/main.css">
 
 </head>
 
 <body>
+    <header>
+        <nav>
+            <a href="/">
+                <h4>
+                    <i class="iconoir-nav-arrow-left">Назада</i>
+                </h4>
+            </a>
+            <h3 class="iconoir-user">Контакты</h3>
+            <input type="text" placeholder="Поиск">
+        </nav>
+    </header>
+
     <main>
         <section>
-            <div class="card-list">
-                <div class="card w100" menu="create-chat">
-                    <main class="center">
-                        <h2 class="iconoir-plus accent"></h2>
-                    </main>
-                </div>
-            </div>
+            <header>
+                <h3 class="iconoir-star-solid">Избранные</h3>
+            </header>
+            <section>
+                <article>
+                    <header>
+                        <nav>
+                            <h3>(❁´◡`❁)</h3>
+                            <nav>
+                                <button><i class="iconoir-edit-pencil"></i></button0>
+                                    <button><i class="iconoir-star-solid "></i></button>
+                            </nav>
+                        </nav>
+                    </header>
+                    <nav>
+                        <h4><b>teferest</b></h4>
+                        <code>dqe***fsd</code>
+                    </nav>
+                </article>
+                <article>
+                    <header>
+                        <nav>
+                            <h3>скейтеры</h3>
+                            <nav>
+                                <button><i class="iconoir-edit-pencil"></i></button0>
+                                    <button><i class="iconoir-star-solid "></i></button>
+                            </nav>
+                        </nav>
+                    </header>
+                    <header>
+                        <nav>
+                            <h4 class="iconoir-user">
+                                <b>13</b>
+                                <ul class="dropdown-menu">
+                                    <li>Участник 1</li>
+                                    <li>Участник 2</li>
+                                    <li>Участник 3</li>
+                                </ul>
+                            </h4>
+                            <code>dqe***fsd</code>
+                        </nav>
+                    </header>
+                </article>
+            </section>
         </section>
+
     </main>
+
+
+    <footer id="custom">
+        <a href="https://github.com/falbue/Life-Message" class="iconoir-github"><i>Github</i></a>
+        <a href="https://iconoir.com/" class="iconoir-peace-hand"><i>iconoir</i></a>
+    </footer>
 </body>
 
 </html>
