@@ -1,13 +1,14 @@
 :root {
-    --dark-plum: #272131;
-    --deep-indigo: #221e2a;
-    --deep-navy: #191520;
-    --soft-purple: #AF99CC;
+    --hue-offset: 0deg;
+    filter: hue-rotate(var(--hue-offset));
     --light-lavender: #E9E6ED;
     --pale-mauve-rgb: 205, 188, 226;
     --pale-mauve: rgba(var(--pale-mauve-rgb), 1);
+    --soft-purple: #AF99CC;
+    --dark-plum: #272131;
+    --deep-indigo: #221e2a;
+    --deep-navy: #191520;
 
-    --white: #f1f1f1;
     --red: #ee5449;
     --red-soft: #ee544942;
     --green: #4caf50;

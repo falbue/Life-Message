@@ -30,12 +30,31 @@
     <script src="cdn/js/main.js" type="module"></script>
 
     <link rel="stylesheet" href="static/css/main.css">
+
 </head>
 
 <body>
     <header data-template="header"></header>
     <section>
+        <div class="theme-controls">
+            <label>
+                Оттенок:
+                <input type="range" id="hue-slider" min="0" max="360" value="0">
+            </label>
+            <div class="presets">
+                <button class="preset" data-hue="0">Оригинал</button>
+                <button class="preset" data-hue="40">Тёплый</button>
+                <button class="preset" data-hue="90">Лайм</button>
+                <button class="preset" data-hue="180">Циан</button>
+                <button class="preset" data-hue="260">Неон</button>
+                <button class="preset" data-hue="300">Розовый</button>
+            </div>
+        </div>
     </section>
 </body>
+
+<script>
+
+</script>
 
 </html>
