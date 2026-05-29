@@ -1,3 +1,16 @@
+@media (prefers-color-scheme: light) {
+    :root {
+        --custom: var(--light-lavender);
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --custom: var(--deep-indigo);
+    }
+
+}
+
 footer#custom {
     position: absolute;
     bottom: 10px;
@@ -12,6 +25,6 @@ footer#custom>a {
     display: flex;
     flex-direction: row;
     gap: 5px;
-    color: var(--light-lavender);
+    color: var(--custom);
     font-size: var(--h4);
 }

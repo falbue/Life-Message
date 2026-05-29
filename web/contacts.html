@@ -11,7 +11,7 @@
     <meta name="keywords" content="chat, anonymous, chatroom" />
     <meta name="author" content="falbue" />
     <meta name="robots" content="index, nofollow" />
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="static/manifest.json">
     <link rel="icon" href="static/icons/favicon.svg" type="image/png" />
 
     <meta name="mobile-web-app-capable" content="yes" />
@@ -26,24 +26,15 @@
         rel="stylesheet">
 
     <!-- Мои подключения -->
-    <link rel="stylesheet" href="../cdn/css/main.css">
+    <link rel="stylesheet" href="cdn/css/main.css">
+    <script src="cdn/js/main.js" type="module"></script>
+
     <link rel="stylesheet" href="static/css/main.css">
 
 </head>
 
 <body>
-    <header>
-        <nav>
-            <a href="/">
-                <h4>
-                    <i class="iconoir-nav-arrow-left">Назада</i>
-                </h4>
-            </a>
-            <h3 class="iconoir-user">Контакты</h3>
-            <input type="text" placeholder="Поиск">
-        </nav>
-    </header>
-
+    <header data-template="header"></header>
     <main>
         <section>
             <header>

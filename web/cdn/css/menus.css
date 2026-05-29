@@ -1,0 +1,48 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(2px);
+    z-index: 999;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.overlay.is-open {
+    display: flex;
+}
+
+.overlay .menu {
+    background: var(--background);
+    border: 1px solid var(--border-color);
+    border-radius: var(--br);
+    min-width: 400px;
+    max-width: 1440px;
+    max-height: 90%;
+    padding: 18px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+}
+
+body.menu-opened {
+    overflow: hidden;
+}
+
+@media (max-width: 768px) {
+    .overlay {
+        align-items: self-end;
+        padding: 0;
+    }
+
+    .overlay .menu {
+        width: 100%;
+        max-width: 100%;
+        border-radius: var(--br) var(--br) 0 0;
+    }
+}

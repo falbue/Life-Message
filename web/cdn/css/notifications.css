@@ -1,0 +1,25 @@
+.notification {
+    position: fixed;
+    padding: 10px 20px;
+    inset: 20px auto auto 50%;
+    transform: translateX(-50%);
+    background-color: var(--soft-purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    border-radius: var(--br);
+    min-width: 300px;
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+    font-size: var(--h5);
+    font-weight: 600;
+    transition: 300ms;
+    opacity: 0;
+    z-index: 100000;
+
+}
+
+.notification.show {
+    opacity: 1 !important;
+    box-shadow: 0px 6px 8px 2px rgba(0, 0, 0, 0.25);
+}

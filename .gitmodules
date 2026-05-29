@@ -1,3 +1,3 @@
 [submodule "cdn.git"]
-	path = cdn
+	path = web/cdn
 	url = https://github.com/project-PDE/cdn.git

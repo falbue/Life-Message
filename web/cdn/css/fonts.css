@@ -1,0 +1,113 @@
+h1 {
+    font-size: var(--h1);
+}
+
+h2 {
+    font-size: var(--h2);
+}
+
+h3 {
+    font-size: var(--h3);
+}
+
+h4 {
+    font-size: var(--h4);
+}
+
+h5 {
+    font-size: var(--h5);
+}
+
+h6 {
+    font-size: var(--h6);
+}
+
+p {
+    font-size: var(--p);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+    color: var(--text-color);
+}
+
+h2.title {
+    margin-bottom: 40px;
+}
+
+h3.title {
+    margin-bottom: 30px;
+}
+
+h1.placeholder,
+h2.placeholder,
+h3.placeholder,
+h4.placeholder,
+h5.placeholder,
+h6.placeholder,
+p.placeholder {
+    width: auto;
+    padding: 0;
+    color: var(--border) !important;
+}
+
+h1.accent,
+h2.accent,
+h3.accent,
+h4.accent,
+h5.accent,
+h6.accent,
+p.accent {
+    color: var(--accent);
+}
+
+:not(pre)>code {
+    font-family: 'Myna', 'Ubuntu Mono', monospace !important;
+    border-radius: 4px;
+    background-color: var(--light-lavender);
+    font-size: var(--h4);
+    color: var(--soft-purple);
+    font-weight: 600;
+    padding: 4px 6px;
+    display: inline-block;
+}
+
+/* код */
+
+pre>code {
+    border-radius: var(--br);
+    font-family: 'Myna', 'Ubuntu Mono', monospace !important;
+    font-size: 14px !important;
+    line-height: 1.2;
+}
+
+@media (max-width: 768px) {
+    pre>code {
+        font-size: 12px !important;
+    }
+}
+
+.code-block>pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    width: 100%;
+}
+
+code>span {
+    font-family: Myna, monospace;
+}
+
+@font-face {
+    font-family: 'Myna';
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/*  */

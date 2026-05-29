@@ -1,0 +1,52 @@
+::selection {
+    background-color: var(--soft-purple);
+    color: var(--deep-indigo);
+}
+
+.icon {
+    color: var(--icon-color);
+    margin-right: 10px;
+}
+
+.chip {
+    border-radius: 24px;
+    background-color: var(--chip-background);
+    color: var(--chip-color);
+    padding: 2px 6px;
+    font-size: var(--p);
+}
+
+*[class^='iconoir-'],
+*[class*=' iconoir-'] {
+    display: flex !important;
+    flex-direction: row;
+    gap: var(--gap);
+    align-items: center;
+}
+
+*[class^='iconoir-']::before,
+*[class*=' iconoir-']::before {
+    width: 1.250em !important;
+    height: 1.250em !important;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    /* Ширина вертикального скроллбара */
+    height: 8px;
+    /* Высота горизонтального скроллбара */
+}
+
+::-webkit-scrollbar-track {
+    background: var(--background);
+    border-radius: 0 var(--br) var(--br) 0;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: var(--br);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--border-active);
+}
