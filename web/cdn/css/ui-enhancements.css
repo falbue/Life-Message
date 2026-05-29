@@ -32,9 +32,7 @@
 
 ::-webkit-scrollbar {
     width: 8px;
-    /* Ширина вертикального скроллбара */
     height: 8px;
-    /* Высота горизонтального скроллбара */
 }
 
 ::-webkit-scrollbar-track {
@@ -49,4 +47,44 @@
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--border-active);
+}
+
+.popover {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.popover>ul {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    background-color: var(--border-color);
+    box-shadow: inset 0 0 0 var(--border) var(--soft-purple);
+    z-index: 1000;
+    border-radius: var(--border-radius);
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    margin: 10px;
+    width: max-content;
+}
+
+.popover:hover ul {
+    visibility: visible;
+    opacity: 1;
+}
+
+.popover>ul li {
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+li {
+    color: var(--text-color);
+    width: auto;
+    display: block;
 }

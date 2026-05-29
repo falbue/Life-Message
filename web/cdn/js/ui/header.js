@@ -9,10 +9,10 @@ export function initNavigation() {
         nav.querySelectorAll('a').forEach(a => {
             const href = a.getAttribute('href');
             if (href === path || (path === '/' && href === '/')) {
-                a.textContent = '';
+                a.classList.add('active');
+                a.classList.add('desktop-hidden');
                 a.removeAttribute('href');
                 a.style.pointerEvents = 'none';
-                a.classList.add('active');
                 found = true;
             }
         });

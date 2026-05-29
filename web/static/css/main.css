@@ -28,3 +28,10 @@ footer#custom>a {
     color: var(--custom);
     font-size: var(--h4);
 }
+
+@media (max-width: 768px) {
+    footer#custom {
+        top: 10px;
+        bottom: auto;
+    }
+}

@@ -66,12 +66,27 @@ p.accent {
     color: var(--accent);
 }
 
+@media (prefers-color-scheme: light) {
+    :root {
+        --code-color: var(--soft-purple);
+        --code-color-bg: var(--light-lavender);
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --code-color: var(--soft-purple);
+        --code-color-bg: var(--deep-indigo);
+    }
+
+}
+
 :not(pre)>code {
     font-family: 'Myna', 'Ubuntu Mono', monospace !important;
     border-radius: 4px;
-    background-color: var(--light-lavender);
+    background-color: var(--code-color-bg);
     font-size: var(--h4);
-    color: var(--soft-purple);
+    color: var(--code-color);
     font-weight: 600;
     padding: 4px 6px;
     display: inline-block;

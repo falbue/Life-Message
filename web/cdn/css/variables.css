@@ -54,8 +54,9 @@
         --background: var(--deep-navy);
         --icon-color: rgba(var(--pale-mauve-rgb), 1);
 
-        --border-color: var(--dark-plum);
-        --border-color-active: var(--deep-indigo);
+        --border-color: var(--deep-indigo);
+        --border-color-active: var(--dark-plum);
+
     }
 
 }
@@ -93,6 +94,6 @@
     flex: 1 1 auto;
 }
 
-.hidden {
+.desktop-hidden {
     display: none !important;
 }

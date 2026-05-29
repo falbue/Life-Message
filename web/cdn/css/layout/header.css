@@ -32,3 +32,22 @@ header>nav>*:first-child {
 header>nav>*:last-child {
     justify-content: end;
 }
+
+@media (max-width: 768px) {
+    body>header {
+        bottom: 20px;
+        top: auto;
+    }
+
+    body>header>nav>* {
+        flex-direction: column !important;
+        flex: 1;
+        min-width: 80px;
+    }
+
+    header>nav>*[class^='iconoir-']::before,
+    header>nav>*[class*=' iconoir-']::before {
+        width: 2em !important;
+        height: 2em !important;
+    }
+}
