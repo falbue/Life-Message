@@ -41,6 +41,12 @@ section>section:has(> article) {
     width: auto;
 }
 
+@media (max-width: 1000px) {
+    section>section:has(> article) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
     section>section:has(> article) {
         grid-template-columns: repeat(1, 1fr);

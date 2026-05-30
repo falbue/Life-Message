@@ -93,7 +93,3 @@
 .flex>* {
     flex: 1 1 auto;
 }
-
-.desktop-hidden {
-    display: none !important;
-}

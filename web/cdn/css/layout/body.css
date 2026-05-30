@@ -2,7 +2,6 @@ html>body {
     box-sizing: border-box;
     margin: 0 auto;
     min-height: 100vh;
-    padding: 0;
     max-width: var(--max-width);
     padding: 16px 20px;
     display: flex;
@@ -16,7 +15,7 @@ html>body {
 body>main {
     margin: 0 auto;
     width: 100%;
-    height: var(--vh);
+    min-height: var(--vh);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -24,5 +23,6 @@ body>main {
 }
 
 body>header~main {
-    margin-top: 100px !important;
+    padding-top: 60px !important;
+    min-height: calc(var(--vh) - 60px);
 }

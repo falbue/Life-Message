@@ -37,7 +37,8 @@ a:not(:has(i)) {
 
 button.active,
 a.active:not(:has(i)) {
-    box-shadow: inset 0 0 0 var(--border) var(--border-color-active);
+    box-shadow: inset 0 0 0 calc(var(--border)*1.5) var(--border-color-active);
+
 }
 
 button:hover,
@@ -77,4 +78,13 @@ button:has(> i:only-child) {
     box-shadow: none;
     padding: 0;
     font-size: var(--h4);
+}
+
+
+
+@media (min-width: 768px) {
+    a.hidden-text {
+        text-indent: -9999px;
+        gap: 0;
+    }
 }

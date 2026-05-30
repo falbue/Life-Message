@@ -10,7 +10,7 @@ export function initNavigation() {
             const href = a.getAttribute('href');
             if (href === path || (path === '/' && href === '/')) {
                 a.classList.add('active');
-                a.classList.add('desktop-hidden');
+                a.classList.add('hidden-text');
                 a.removeAttribute('href');
                 a.style.pointerEvents = 'none';
                 found = true;

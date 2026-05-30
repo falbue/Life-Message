@@ -1,4 +1,4 @@
-const HUE_KEY = 'lm-hue-offset'; // префикс для изоляции
+const HUE_KEY = 'color'; // префикс для изоляции
 
 const setHue = (deg) => {
     document.documentElement.style.setProperty('--hue-offset', `${deg}deg`);
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const slider = document.getElementById('hue-slider');
     if (slider) {
         slider.value = hue;
-        slider.addEventListener('change', e => setHue(e.target.value)); // change вместо input
+        slider.addEventListener('change', e => setHue(e.target.value));
     }
 
     document.querySelectorAll('.preset').forEach(btn => {

@@ -43,6 +43,7 @@ header>nav>*:last-child {
         flex-direction: column !important;
         flex: 1;
         min-width: 80px;
+        gap: 0 !important;
     }
 
     header>nav>*[class^='iconoir-']::before,
