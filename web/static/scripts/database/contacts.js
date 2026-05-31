@@ -1,0 +1,150 @@
+import { getAllContacts, toggleFavoriteStatus, saveContact } from './db.js';
+
+// === Глобальные флаги и кэш ===
+let isUpdating = false;
+let contactsCache = [];
+
+// Функция создания HTML карточки
+function createCardHTML(contact) {
+    const isFavClass = contact.isFavorite ? 'iconoir-star-solid' : 'iconoir-star';
+
+    const headerHtml = `
+        <header>
+            <nav>
+                <h3>${escapeHtml(contact.name)}</h3>
+                <nav>
+                    <button class="btn-edit" aria-label="Редактировать">
+                        <i class="iconoir-edit-pencil"></i>
+                    </button>
+                    <button class="btn-fav" aria-label="В избранное" data-id="${contact.id}">
+                        <i class="${isFavClass}"></i>
+                    </button>
+                </nav>
+            </nav>
+        </header>
+    `;
+
+    let bodyHtml = '';
+    if (contact.type === 'group') {
+        const membersList = (contact.members || [])
+            .map(m => `<li><h4>${escapeHtml(m)}</h4></li>`)
+            .join('');
+        bodyHtml = `
+            <header>
+                <nav>
+                    <div class="popover">
+                        <h4 class="iconoir-user"><b>${contact.members ? contact.members.length : 0}</b></h4>
+                        <ul role="menu">${membersList}</ul>
+                    </div>
+                    <code>${escapeHtml(contact.id.slice(0, 8))}...</code>
+                </nav>
+            </header>
+        `;
+    } else {
+        bodyHtml = `
+            <nav>
+                <h4><b>${escapeHtml(contact.username || 'Unknown')}</b></h4>
+                <code>${escapeHtml(contact.id.slice(0, 8))}...</code>
+            </nav>
+        `;
+    }
+
+    return `
+        <a href="/chat#${contact.id}" class="contact-card" data-type="${contact.type}" data-id="${contact.id}">
+            <article>
+                ${headerHtml}
+                ${bodyHtml}
+            </article>
+        </a>
+    `;
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+async function renderSection(selector, contacts) {
+    const container = document.querySelector(selector);
+    if (!container) return;
+
+    container.innerHTML = contacts.map(createCardHTML).join('');
+}
+
+// === ОДНОКРАТНАЯ инициализация событий на document ===
+function setupGlobalEvents() {
+    // Вешаем слушатель один раз на весь документ
+    document.addEventListener('click', async (e) => {
+        const favBtn = e.target.closest('.btn-fav');
+        if (favBtn) {
+            e.preventDefault();
+
+            // Блокировка быстрых повторных кликов
+            if (isUpdating) return;
+            isUpdating = true;
+
+            const id = favBtn.dataset.id;
+            const icon = favBtn.querySelector('i');
+
+            // 1. Оптимистичное обновление иконки (мгновенный отклик)
+            const willBeFavorite = !icon.classList.contains('iconoir-star-solid');
+            icon.className = willBeFavorite ? 'iconoir-star-solid' : 'iconoir-star';
+
+            try {
+                // 2. Асинхронное обновление БД
+                await toggleFavoriteStatus(id);
+                // 3. Полная перерисовка списков (контакты "перелетят" в нужную секцию)
+                await initContacts();
+            } catch (err) {
+                console.error("Ошибка обновления:", err);
+                // Если ошибка - возвращаем иконку обратно (откат)
+                icon.className = willBeFavorite ? 'iconoir-star' : 'iconoir-star-solid';
+            } finally {
+                isUpdating = false;
+            }
+        }
+
+        // Обработка кнопки редактирования
+        const editBtn = e.target.closest('.btn-edit');
+        if (editBtn) {
+            e.preventDefault();
+            const id = editBtn.closest('.contact-card').dataset.id;
+            console.log("Редактирование:", id);
+        }
+    });
+}
+
+export async function initContacts() {
+    try {
+        // Читаем из БД
+        const allContacts = await getAllContacts();
+        contactsCache = allContacts; // Сохраняем в кэш (можно использовать в будущем)
+
+        const favorites = allContacts.filter(c => c.isFavorite);
+        const nonFavorites = allContacts.filter(c => !c.isFavorite);
+
+        // Рендерим
+        await renderSection('#favorite-section', favorites);
+        await renderSection('#all-section', nonFavorites);
+    } catch (err) {
+        console.error("Ошибка инициализации контактов:", err);
+    }
+    // Важно: не сбрасываем isUpdating здесь, это делает обработчик клика
+}
+
+export async function addNewContact(contactData) {
+    if (contactData.isFavorite === undefined) contactData.isFavorite = false;
+    await saveContact(contactData);
+    await initContacts();
+}
+
+// === Автозапуск ===
+document.addEventListener('DOMContentLoaded', () => {
+    setupGlobalEvents(); // Вешаем события ОДИН РАЗ
+    initContacts();      // Загружаем данные
+});
