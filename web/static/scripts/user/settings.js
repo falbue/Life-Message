@@ -1,74 +1,157 @@
-function updateFieldsFromLocalStorage() {
-    const elements = document.querySelectorAll('[data-field]');
+class LocalStorageFieldManager {
+    constructor() {
+        this.isUpdating = false;
+        this.pendingUpdate = false;
+        this.init();
+    }
 
-    elements.forEach(element => {
-        const fieldName = element.getAttribute('data-field');
+    init() {
+        this.updateFieldsFromLocalStorage();
+        this.setupMutationObserver();
 
-        if (fieldName) {
-            const value = localStorage.getItem(fieldName);
-            if (value !== null && value !== undefined) {
-                let currentValue;
-                if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA' || element.tagName === 'SELECT') {
-                    currentValue = element.value;
-                } else {
-                    currentValue = element.textContent;
-                }
-
-                if (currentValue !== value) {
-                    if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-                        element.value = value;
-                    } else if (element.tagName === 'SELECT') {
-                        element.value = value;
-                    } else {
-                        element.textContent = value;
-                    }
-                }
+        window.addEventListener('storage', (event) => {
+            if (event.key && document.querySelector(`[data-field="${event.key}"]`)) {
+                this.updateSpecificField(event.key);
             }
-        }
-    });
-}
+        });
+        this.interceptLocalStorage();
+        this.setupInputListeners();
+    }
 
-let isUpdating = false;
+    updateSpecificField(fieldName) {
+        const element = document.querySelector(`[data-field="${fieldName}"]`);
+        if (!element) return;
 
-const observer = new MutationObserver((mutations) => {
-    if (isUpdating) return;
+        const value = localStorage.getItem(fieldName);
+        this.setElementValue(element, value || '');
+    }
 
-    let shouldUpdate = false;
+    updateFieldsFromLocalStorage() {
+        const elements = document.querySelectorAll('[data-field]');
 
-    mutations.forEach((mutation) => {
-        if (mutation.addedNodes.length > 0) {
-            shouldUpdate = true;
-        }
-        if (mutation.type === 'attributes' &&
-            mutation.attributeName === 'data-field') {
-            shouldUpdate = true;
-        }
-    });
+        elements.forEach(element => {
+            const fieldName = element.getAttribute('data-field');
+            if (!fieldName) return;
 
-    if (shouldUpdate) {
-        isUpdating = true;
-        requestAnimationFrame(() => {
-            updateFieldsFromLocalStorage();
-            isUpdating = false;
+            const value = localStorage.getItem(fieldName);
+            this.setElementValue(element, value || '');
         });
     }
-});
 
-function initFieldUpdater() {
-    updateFieldsFromLocalStorage();
+    setElementValue(element, value) {
+        const isReadonly = element.hasAttribute('data-readonly');
 
-    if (document.body) {
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true,
-            attributes: true,
-            attributeFilter: ['data-field']
+        switch (element.tagName) {
+            case 'INPUT':
+            case 'TEXTAREA':
+            case 'SELECT':
+                if (isReadonly && element.value) return;
+                element.value = value;
+                break;
+            default:
+                if (isReadonly && element.textContent) return;
+                element.textContent = value;
+        }
+    }
+
+    setupMutationObserver() {
+        const observer = new MutationObserver((mutations) => {
+            let newElementsWithField = false;
+
+            for (const mutation of mutations) {
+                // Проверяем добавленные узлы
+                if (mutation.addedNodes.length > 0) {
+                    for (const node of mutation.addedNodes) {
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                            // Проверяем сам элемент и его descendants
+                            if (node.hasAttribute?.('data-field') ||
+                                node.querySelector?.('[data-field]')) {
+                                newElementsWithField = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (newElementsWithField) break;
+            }
+
+            if (newElementsWithField && !this.pendingUpdate) {
+                this.pendingUpdate = true;
+                requestAnimationFrame(() => {
+                    this.updateFieldsFromLocalStorage();
+                    this.pendingUpdate = false;
+                });
+            }
         });
+
+        if (document.body) {
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        }
+    }
+
+    interceptLocalStorage() {
+        const methods = ['setItem', 'removeItem', 'clear'];
+        const originalMethods = {};
+
+        methods.forEach(method => {
+            originalMethods[method] = localStorage[method];
+
+            localStorage[method] = (...args) => {
+                const result = originalMethods[method].apply(localStorage, args);
+                let key = null;
+                if (method === 'setItem') key = args[0];
+                else if (method === 'removeItem') key = args[0];
+
+                if (key) {
+                    this.updateSpecificField(key);
+                } else {
+                    this.updateFieldsFromLocalStorage();
+                }
+                return result;
+            };
+        });
+    }
+
+    setupInputListeners() {
+        // Используем делегирование событий
+        document.addEventListener('input', (event) => {
+            this.handleFieldChange(event.target);
+        });
+
+        document.addEventListener('change', (event) => {
+            this.handleFieldChange(event.target);
+        });
+    }
+
+    handleFieldChange(element) {
+        const fieldName = element.getAttribute('data-field');
+        if (!fieldName || element.hasAttribute('data-readonly')) return;
+
+        let value;
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(element.tagName)) {
+            value = element.value;
+        } else {
+            value = element.textContent;
+        }
+
+        localStorage.setItem(fieldName, value);
     }
 }
 
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initFieldUpdater);
+    document.addEventListener('DOMContentLoaded', () => {
+        window.fieldManager = new LocalStorageFieldManager();
+    });
 } else {
-    initFieldUpdater();
+    window.fieldManager = new LocalStorageFieldManager();
 }
+
+window.updateAllFields = () => {
+    if (window.fieldManager) {
+        window.fieldManager.updateFieldsFromLocalStorage();
+    }
+};

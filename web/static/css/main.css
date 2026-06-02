@@ -43,4 +43,11 @@ article.avatar {
     background-color: var(--button-color);
     gap: 20px;
     width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+button.avatar {
+    font-size: var(--h4);
+    padding: 20px
 }

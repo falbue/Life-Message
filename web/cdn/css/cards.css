@@ -42,6 +42,18 @@ section>section:has(> a > article) {
     width: auto;
 }
 
+section>section:has(> button) {
+    display: flex;
+    flex-direction: row;
+    gap: var(--gap);
+    flex-wrap: wrap;
+}
+
+section>section:has(> button)>* {
+    flex: 1;
+    white-space: nowrap;
+}
+
 @media (max-width: 1000px) {
 
     section>section:has(> article),
