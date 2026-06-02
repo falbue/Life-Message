@@ -9,6 +9,7 @@
     --deep-indigo: #221e2a;
     --deep-navy: #191520;
 
+    --white: #F1F1F1;
     --red: #ee5449;
     --red-soft: #ee544942;
     --green: #4caf50;
@@ -60,6 +61,12 @@
     }
 
 }
+
+[data-hue-adaptive] {
+    background-color: var](--base-theme-color);
+    filter: hue-rotate(calc(var(--hue-target, 0deg) - var(--hue-offset)));
+}
+
 
 .red {
     background-color: var(--red);

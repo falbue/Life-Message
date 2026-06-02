@@ -1,8 +1,21 @@
-const HUE_KEY = 'color'; // префикс для изоляции
+const HUE_KEY = 'color';
+
+const updateActiveState = (deg) => {
+    const currentDeg = parseInt(deg, 10);
+    document.querySelectorAll('[data-hue-adaptive]').forEach(btn => {
+        const btnDeg = parseInt(btn.dataset.hueAdaptive, 10);
+        if (btnDeg === currentDeg) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+};
 
 const setHue = (deg) => {
     document.documentElement.style.setProperty('--hue-offset', `${deg}deg`);
     localStorage.setItem(HUE_KEY, deg);
+    updateActiveState(deg);
 };
 
 const getHue = () => {
@@ -12,19 +25,23 @@ const getHue = () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     const hue = getHue();
-    setHue(hue); // применим сохранённое
+    setHue(hue);
 
     const slider = document.getElementById('hue-slider');
     if (slider) {
         slider.value = hue;
-        slider.addEventListener('change', e => setHue(e.target.value));
+        slider.addEventListener('input', e => {
+            setHue(e.target.value);
+        });
     }
 
-    document.querySelectorAll('.preset').forEach(btn => {
+    document.querySelectorAll('[data-hue-adaptive]').forEach(btn => {
+        const targetDeg = btn.dataset.hueAdaptive;
+        btn.style.setProperty('--hue-target', `${targetDeg}deg`);
+
         btn.addEventListener('click', () => {
-            const hue = btn.dataset.hue;
-            setHue(hue);
-            if (slider) slider.value = hue;
+            setHue(targetDeg);
+            if (slider) slider.value = targetDeg;
         });
     });
 });

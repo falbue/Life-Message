@@ -1,45 +1,12 @@
 (() => {
     const templateCache = new Map();
-    let overlay = null;
-    let activeMenuName = null;
-
-    function ensureOverlay() {
-        if (overlay) {
-            return overlay;
-        }
-
-        overlay = document.createElement("div");
-        overlay.className = "overlay";
-        overlay.setAttribute("aria-hidden", "true");
-
-        overlay.addEventListener("click", (event) => {
-            if (event.target === overlay) {
-                closeMenu();
-            }
-        });
-
-        overlay.addEventListener("submit", (event) => {
-            if (overlay.contains(event.target)) {
-                setTimeout(() => {
-                    closeMenu();
-                }, 100);
-            }
-        }, true);
-
-        document.body.appendChild(overlay);
-        return overlay;
-    }
+    let activeDialog = null;
 
     function closeMenu() {
-        if (!overlay) {
-            return;
-        }
+        if (!activeDialog) return;
 
-        overlay.classList.remove("is-open");
-        overlay.setAttribute("aria-hidden", "true");
-        document.body.classList.remove("menu-opened");
-        activeMenuName = null;
-        overlay.replaceChildren();
+        activeDialog.close();
+        activeDialog = null;
     }
 
     async function loadMenuTemplate(menuName) {
@@ -49,6 +16,7 @@
 
         const fileName = menuName.endsWith(".html") ? menuName : `${menuName}.html`;
         const response = await fetch(`/static/menus/${fileName}`);
+
         if (!response.ok) {
             throw new Error(`Не удалось загрузить меню: ${menuName}`);
         }
@@ -59,48 +27,57 @@
     }
 
     async function openMenu(menuName) {
-        if (!menuName) {
+        if (!menuName) return;
+
+        if (activeDialog && activeDialog.dataset.menuName === menuName) {
             return;
         }
 
-        const currentOverlay = ensureOverlay();
-
-        if (activeMenuName === menuName && currentOverlay.classList.contains("is-open")) {
-            return;
+        if (activeDialog) {
+            closeMenu();
         }
 
         try {
             const html = await loadMenuTemplate(menuName);
+
+            const dialog = document.createElement("dialog");
+            dialog.dataset.menuName = menuName;
+
             const template = document.createElement("template");
             template.innerHTML = html;
             const scripts = Array.from(template.content.querySelectorAll("script"));
 
-            for (const script of scripts) {
-                script.remove();
-            }
+            dialog.appendChild(template.content.cloneNode(true));
 
-            currentOverlay.replaceChildren();
-            currentOverlay.appendChild(template.content.cloneNode(true));
-
-            // Scripts inserted through HTML strings are inert, so re-create them to execute.
             for (const sourceScript of scripts) {
                 const runnableScript = document.createElement("script");
-
                 for (const { name, value } of sourceScript.attributes) {
                     runnableScript.setAttribute(name, value);
                 }
-
                 if (sourceScript.textContent) {
                     runnableScript.textContent = sourceScript.textContent;
                 }
-
-                currentOverlay.appendChild(runnableScript);
+                dialog.appendChild(runnableScript);
             }
 
-            currentOverlay.classList.add("is-open");
-            currentOverlay.setAttribute("aria-hidden", "false");
-            document.body.classList.add("menu-opened");
-            activeMenuName = menuName;
+            document.body.appendChild(dialog);
+
+            dialog.addEventListener("close", () => {
+                dialog.remove();
+                if (activeDialog === dialog) {
+                    activeDialog = null;
+                }
+            });
+
+            dialog.addEventListener("click", (event) => {
+                if (event.target === dialog) {
+                    closeMenu();
+                }
+            });
+
+            dialog.showModal();
+            activeDialog = dialog;
+
         } catch (error) {
             console.error(error);
         }
@@ -109,7 +86,7 @@
     document.addEventListener("click", (event) => {
         const target = event.target;
 
-        const closeTrigger = target.closest("[close='true'], [close='true']");
+        const closeTrigger = target.closest("[close='true']");
         if (closeTrigger) {
             closeMenu();
             return;
@@ -120,12 +97,6 @@
             event.preventDefault();
             const menuName = openTrigger.getAttribute("menu");
             openMenu(menuName);
-        }
-    });
-
-    document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") {
-            closeMenu();
         }
     });
 })();

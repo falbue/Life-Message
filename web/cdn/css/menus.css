@@ -1,48 +1,36 @@
-.overlay {
-    position: fixed;
-    inset: 0;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.55);
-    backdrop-filter: blur(2px);
-    z-index: 999;
-    padding: 20px;
+dialog {
     box-sizing: border-box;
-}
-
-.overlay.is-open {
-    display: flex;
-}
-
-.overlay .menu {
-    background: var(--background);
-    border: 1px solid var(--border-color);
-    border-radius: var(--br);
+    background-color: var(--background);
+    border: var(--border) solid var(--border-color);
+    border-radius: var(--border-radius);
     min-width: 400px;
     max-width: 1440px;
     max-height: 90%;
-    padding: 18px;
+    padding: calc(var(--padding)*2);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--gap);
     overflow-y: auto;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
-body.menu-opened {
-    overflow: hidden;
-}
+dialog::backdrop {
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(2px);
 
-@media (max-width: 768px) {
-    .overlay {
-        align-items: self-end;
-        padding: 0;
+    @media (max-width: 768px) {
+        .overlay {
+            align-items: self-end;
+            padding: 0;
+        }
+
+        .overlay .menu {
+            width: 100%;
+            max-width: 100%;
+            border-radius: var(--br) var(--br) 0 0;
+        }
     }
-
-    .overlay .menu {
-        width: 100%;
-        max-width: 100%;
-        border-radius: var(--br) var(--br) 0 0;
-    }
-}

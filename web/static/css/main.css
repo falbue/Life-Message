@@ -35,3 +35,12 @@ footer#custom>a {
         bottom: auto;
     }
 }
+
+
+article.avatar {
+    box-sizing: border-box;
+    padding: 20px;
+    background-color: var(--button-color);
+    gap: 20px;
+    width: 100%;
+}
