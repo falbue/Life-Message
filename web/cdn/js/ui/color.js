@@ -23,9 +23,21 @@ const getHue = () => {
     return saved ? parseInt(saved, 10) : 0;
 };
 
+const initHueButtons = () => {
+    document.querySelectorAll('[data-hue-adaptive]').forEach(btn => {
+        if (!btn.style.getPropertyValue('--hue-target')) {
+            const targetDeg = btn.dataset.hueAdaptive;
+            btn.style.setProperty('--hue-target', `${targetDeg}deg`);
+        }
+    });
+    updateActiveState(getHue());
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     const hue = getHue();
     setHue(hue);
+
+    initHueButtons();
 
     const slider = document.getElementById('hue-slider');
     if (slider) {
@@ -35,13 +47,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    document.querySelectorAll('[data-hue-adaptive]').forEach(btn => {
-        const targetDeg = btn.dataset.hueAdaptive;
-        btn.style.setProperty('--hue-target', `${targetDeg}deg`);
-
-        btn.addEventListener('click', () => {
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-hue-adaptive]');
+        if (btn) {
+            const targetDeg = btn.dataset.hueAdaptive;
             setHue(targetDeg);
-            if (slider) slider.value = targetDeg;
-        });
+            const currentSlider = document.getElementById('hue-slider');
+            if (currentSlider) currentSlider.value = targetDeg;
+        }
     });
 });
+
+document.addEventListener('hue:refresh', initHueButtons);

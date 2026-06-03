@@ -36,6 +36,17 @@ footer#custom>a {
     }
 }
 
+article.avatar[menu] {
+    box-shadow: var(--shadow-bottom);
+}
+
+article.avatar[menu]>h2 {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 
 article.avatar {
     box-sizing: border-box;

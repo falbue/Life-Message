@@ -51,22 +51,24 @@
             <p id="displayMessage"></p>
         </div>
 
-        <div class="input-message" id="textarea">
+        <div id="textarea">
             <div class="commands hidden">
                 <div class="list"></div>
                 <div class="w-line"></div>
             </div>
-            <div class="between">
-                <h4 class="inline copy"></h4>
-                <nav class="buttons">
-                    <button id="muteButton" class="hidden iconoir-microphone-mute-solid"></button>
-                    <button id="videoButton" class="hidden iconoir-camera"></button>
-                    <button id="screenButton" class="hidden iconoir-chromecast"></button>
-                    <button id="audioCallButton" class="iconoir-phone"></button>
-                    <button id="saveChat" class="iconoir-floppy-disk" menu="save-chat"></button>
-                    <button id="shareButton" class="iconoir-share-android"></button>
+            <header>
+                <nav>
+                    <code class="inline copy"></code>
+                    <nav>
+                        <button id="muteButton" class="hidden iconoir-microphone-mute-solid"></button>
+                        <button id="videoButton" class="hidden iconoir-camera"></button>
+                        <button id="screenButton" class="hidden iconoir-chromecast"></button>
+                        <button id="audioCallButton" class="iconoir-phone"></button>
+                        <button id="shareButton" class="iconoir-share-android"></button>
+                        <button class="iconoir-menu" menu="chat-menu"></button>
+                    </nav>
                 </nav>
-            </div>
+            </header>
             <div class="textarea-wrapper">
                 <div class="resize-handle"><i class="iconoir-menu"></i></div>
                 <div class="input-area">

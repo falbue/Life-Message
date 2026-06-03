@@ -30,7 +30,7 @@ section>header:has(h2) {
     margin-bottom: 40px;
 }
 
-section>header:has(h3) {
+section>header:has(h3, h4) {
     margin-bottom: 20px;
 }
 

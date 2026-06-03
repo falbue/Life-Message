@@ -1,4 +1,5 @@
 dialog {
+    filter: hue-rotate(var(--hue-offset));
     box-sizing: border-box;
     background-color: var(--background);
     border: var(--border) solid var(--border-color);
@@ -33,4 +34,18 @@ dialog::backdrop {
             max-width: 100%;
             border-radius: var(--br) var(--br) 0 0;
         }
+    }
+}
+
+@media (max-width: 768px) {
+    dialog {
+        width: 100%;
+        top: auto;
+        left: auto;
+        bottom: 0;
+        transform: none;
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+        border: none;
+        box-shadow: inset 0 2px 0 0 var(--border-color);
+        padding-top: calc(var(--padding)*4);
     }

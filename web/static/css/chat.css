@@ -1,9 +1,14 @@
 body {
-    background-color: var(--border) !important;
+    background-color: var(--border-color) !important;
+    padding: 0 !important;
 }
 
 main {
     padding: 0 !important;
+}
+
+.hidden {
+    display: none;
 }
 
 ::-webkit-scrollbar {
@@ -12,8 +17,8 @@ main {
 }
 
 ::-webkit-scrollbar-track {
-    background: var(--border) !important;
-    border-radius: var(--br) !important;
+    background: var(--border-color);
+    border-radius: var(--border-radius);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -21,8 +26,8 @@ main {
     border-radius: var(--br);
 }
 
-::-webkit-scrollbar-thumb:hover {
-    background: var(--border-active);
+]]::-webkit-scrollbar-thumb:hover {
+    background: var(--border-color);
 }
 
 .chat {
@@ -39,15 +44,15 @@ main {
 }
 
 
-.input-message {
+#textarea {
     padding: 12px;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    background-color: var(--input);
-    border-radius: var(--br);
     background-color: var(--background);
-    box-shadow: 0px -1px 2px 0px rgba(0, 0, 0, 0.10);
+    border-radius: var(--border-radius);
+    background-color: var(--background);
+    box-shadow: var(--shadow-bottom);
     margin: 12px 12px 16px 12px;
 }
 
@@ -71,7 +76,7 @@ main {
 }
 
 textarea {
-    background-color: var(--input);
+    background-color: var(--background);
     color: var(--text-color);
     width: 100%;
     border: none;
@@ -94,11 +99,6 @@ textarea::placeholder {
 .command {
     padding: 6px 0;
     cursor: pointer;
-}
-
-.active {
-    background-color: var(--border);
-    border-radius: 4px;
 }
 
 video {
