@@ -1,0 +1,11 @@
+services:
+  chat-server:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./server.js:/app/server.js
+      - ./public:/app/public
+    ports:
+      - "8080:8080"
+    command: sh -c "npm install ws && node server.js"
+    restart: unless-stopped

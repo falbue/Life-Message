@@ -3,12 +3,13 @@ body {
     padding: 0 !important;
 }
 
-main {
-    padding: 0 !important;
+main>header {
+    padding: var(--padding) calc(var(--padding)*2);
+    box-sizing: border-box;
 }
 
-.hidden {
-    display: none;
+main>header * {
+    color: var(--accent) !important;
 }
 
 ::-webkit-scrollbar {
@@ -26,7 +27,7 @@ main {
     border-radius: var(--br);
 }
 
-]]::-webkit-scrollbar-thumb:hover {
+::-webkit-scrollbar-thumb:hover {
     background: var(--border-color);
 }
 
@@ -43,6 +44,9 @@ main {
     overflow-wrap: anywhere;
 }
 
+#displayMessage {
+    color: var(--accent);
+}
 
 #textarea {
     padding: 12px;
@@ -59,6 +63,7 @@ main {
 .resize-handle {
     opacity: 0.2;
     cursor: ns-resize;
+    user-select: text;
     margin-bottom: -3px;
     z-index: 5;
     position: relative;
@@ -75,91 +80,8 @@ main {
     box-sizing: border-box;
 }
 
-textarea {
-    background-color: var(--background);
-    color: var(--text-color);
-    width: 100%;
-    border: none;
-    box-sizing: border-box;
-    max-height: 40dvh;
-    resize: none;
-    overflow-y: auto;
-    font-size: clamp(1rem, 4vw, 1.25rem);
-}
-
-textarea:focus {
-    outline: none;
-}
 
 textarea::placeholder {
     position: absolute;
     font-size: clamp(1rem, 4vw, 1.25rem);
-}
-
-.command {
-    padding: 6px 0;
-    cursor: pointer;
-}
-
-video {
-    max-width: 160px;
-    aspect-ratio: 16 / 9;
-    border-radius: 8px;
-    object-fit: cover;
-}
-
-#callMedia {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-#callLocalMedia {
-    justify-content: right;
-}
-
-#callLocalMedia,
-#callRemoteMedia {
-    flex: 1 1 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.mirror video {
-    transform: scaleX(-1);
-}
-
-#callLocalMedia:empty,
-#callRemoteMedia:empty {
-    display: none;
-}
-
-video.big {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    object-fit: contain;
-    z-index: 9998;
-    background: #000;
-    cursor: default;
-    max-width: 100vw;
-}
-
-.video-close {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    z-index: 9999;
-}
-
-video.big.mirror {
-    transform: scaleX(-1);
-}
-
-p .accent {
-    color: var(--soft-purple);
 }

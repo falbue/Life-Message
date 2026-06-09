@@ -16,12 +16,8 @@
 
     <meta charset="UTF-8" />
     <link rel="icon" href="static/icons/favicon.svg" type="image/png" />
-    <link rel="stylesheet" type="text/css" href="static/css/chat.css" />
 
-    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.0.1/dist/socket.io.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/iconoir-icons/iconoir@main/css/iconoir.css" />
-
-    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css"
         media="(prefers-color-scheme: light)">
@@ -39,60 +35,46 @@
     <link rel="stylesheet" href="cdn/css/main.css">
     <script src="cdn/js/main.js" type="module"></script>
 
-    <script src="static/scripts/database/contacts.js" type="module"></script>
+    <link rel="stylesheet" type="text/css" href="static/css/chat.css" />
     <link rel="stylesheet" href="static/css/main.css">
 
-
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="static/scripts/chat/webrtc.js"></script>
+    <script src="static/scripts/chat/users.js"></script>
+    <script type="module" src="static/scripts/ui/auto-fonts.js"></script>
 </head>
 
 <body>
     <main>
+        <header>
+            <nav>
+                <a href="/">
+                    <i>
+                        <h4 class="iconoir-arrow-left"></h4>
+                    </i>
+                </a>
+                <nav id="users-list">
+                    <h4 data-field="avatar"></h4>
+                </nav>
+                <nav>
+                    <button class="iconoir-phone"></button>
+                    <button class="iconoir-menu" menu="chat-menu"></button>
+                </nav>
+            </nav>
+        </header>
         <div class="chat">
             <p id="displayMessage"></p>
         </div>
 
         <div id="textarea">
-            <div class="commands hidden">
-                <div class="list"></div>
-                <div class="w-line"></div>
-            </div>
-            <header>
-                <nav>
-                    <code class="inline copy"></code>
-                    <nav>
-                        <button id="muteButton" class="hidden iconoir-microphone-mute-solid"></button>
-                        <button id="videoButton" class="hidden iconoir-camera"></button>
-                        <button id="screenButton" class="hidden iconoir-chromecast"></button>
-                        <button id="audioCallButton" class="iconoir-phone"></button>
-                        <button id="shareButton" class="iconoir-share-android"></button>
-                        <button class="iconoir-menu" menu="chat-menu"></button>
-                    </nav>
-                </nav>
-            </header>
-            <div class="textarea-wrapper">
-                <div class="resize-handle"><i class="iconoir-menu"></i></div>
-                <div class="input-area">
-                    <textarea rows="1" id="inputMessage" placeholder="Введите сообщение..." inputmode="text"></textarea>
-                    <button id="exec" class="hidden" title="Выполнить команду">
-                        <i class="iconoir-send"></i>
-                    </button>
-                    <button id="reset" class="ghost">
-                        <i class="iconoir-xmark"></i>
-                    </button>
-                </div>
-            </div>
+            <nav class="input-area">
+                <textarea rows="1" placeholder="Сообщение" inputmode="text"></textarea>
+                <button id="reset" class="ghost">
+                    <i class="iconoir-xmark"></i>
+                </button>
+            </nav>
         </div>
     </main>
 </body>
-
-<script type="module" src="static/scripts/message/main.js"></script>
-<script type="module" src="static/scripts/commands/dispatch.js" defer></script>
-<script src="static/scripts/share.js"></script>
-<script src="static/scripts/ui/resize.js"></script>
-<script src="static/scripts/message/copy.js" defer></script>
-<script src="static/scripts/ui/clear.js" defer></script>
-<script src="static/scripts/ui/resize-video.js" defer></script>
-<script type="module" src="static/scripts/ui/auto-fonts.js" defer></script>
-<script type="module" src="static/scripts/calls/main.js" defer></script>
 
 </html>

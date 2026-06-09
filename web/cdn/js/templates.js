@@ -11,15 +11,11 @@ async function loadTemplates() {
 
             const html = await response.text();
 
-            // Вставляем содержимое ПЕРЕД элементом-заглушкой
             element.insertAdjacentHTML('beforebegin', html);
-
-            // Полностью удаляем элемент-заглушку из DOM
             element.remove();
 
         } catch (error) {
             console.error(`Ошибка загрузки "${templateName}":`, error);
-            // Опционально: можно оставить заглушку или показать ошибку в ней
         }
     });
 

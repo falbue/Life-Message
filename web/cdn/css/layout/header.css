@@ -25,6 +25,10 @@ header>nav>* {
     justify-content: center;
 }
 
+main>header>nav>* {
+    flex: 1;
+}
+
 header>nav>*:first-child {
     justify-content: start !important;
 }

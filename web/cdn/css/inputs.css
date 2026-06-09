@@ -1,12 +1,15 @@
 @media (prefers-color-scheme: light) {
     :root {
-        --input-placeholder: var(--light-lavender)
+        --input-placeholder: var(--light-lavender);
+        --input-border-color: var(--soft-purple);
     }
 }
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --input-placeholder: var(--deep-indigo)
+        --input-placeholder: var(--deep-indigo);
+        --input-border-color: var(--dark-plum);
+        --input-border-color-active: var(--soft-purple);
     }
 
 }
@@ -17,7 +20,7 @@ input {
     background-color: var(--input);
     color: var(--text-color);
     border: none;
-    box-shadow: inset 0 0 0 var(--border) var(--border-color);
+    box-shadow: inset 0 0 0 var(--border) var(--input-border-color);
     font-size: var(--h4);
     box-sizing: border-box;
     transition: 150ms ease;
@@ -25,7 +28,7 @@ input {
 
 input:focus {
     outline: none;
-    box-shadow: inset 0 0 0 var(--border) var(--border-color-active);
+    box-shadow: inset 0 0 0 var(--border) var(--input-border-color-active);
 }
 
 input::placeholder {
@@ -34,8 +37,25 @@ input::placeholder {
 }
 
 input[type="checkbox"] {
-    accent-color: var(--border-color-active);
+    accent-color: var(--input-border-color-active);
     cursor: pointer;
     width: 1.25rem;
     height: 1.25rem;
+}
+
+textarea {
+    background-color: var(--background);
+    color: var(--text-color);
+    width: 100%;
+    border: none;
+    box-sizing: border-box;
+    max-height: 40dvh;
+    resize: none;
+    overflow-y: auto;
+    font-size: clamp(1rem, 4vw, 1.25rem);
+}
+
+
+textarea:focus {
+    outline: none;
 }

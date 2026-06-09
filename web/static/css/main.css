@@ -58,6 +58,10 @@ article.avatar {
     align-items: center;
 }
 
+article.avatar * {
+    color: var(--accent);
+}
+
 button.avatar {
     font-size: var(--h4);
     padding: 20px

@@ -18,7 +18,8 @@
     --max-width: 1440px;
     --vh: 100dvh;
 
-    --text-color: var(--soft-purple);
+    --text-color: var(--deep-navy);
+    --text-color-adaptive: var(--soft-purple);
 
     --border: 2px;
     --border-radius: 12px;
@@ -38,7 +39,8 @@
 
 @media (prefers-color-scheme: light) {
     :root {
-        --button-text-color: var(--soft-purple);
+        --text-color: var(--deep-navy);
+
         --background: var(--white);
         --icon-color: var(--soft-purple);
 
@@ -57,6 +59,8 @@
 
         --border-color: var(--deep-indigo);
         --border-color-active: var(--dark-plum);
+
+        --text-color: var(--light-lavender);
 
     }
 
