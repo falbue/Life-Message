@@ -6,16 +6,24 @@ export class ResourceManager {
     }
 
     loadStyles(styles) {
-        dom.remove('[data-spa-resource="style"]');
+        const currentStyleIds = new Set();
 
         styles.forEach(styleEl => {
             const id = this.getResourceId(styleEl);
-            if (this.loadedResources.has(id)) return;
+            currentStyleIds.add(id);
+            if (styleEl.tagName === 'LINK') {
+                const href = styleEl.getAttribute('href');
+                if (dom.exists(`link[href="${href}"][data-spa-resource="style"]`)) {
+                    return;
+                }
+            } else if (styleEl.tagName === 'STYLE') {
+                if (dom.exists(`style[data-resource-id="${id}"][data-spa-resource="style"]`)) {
+                    return;
+                }
+            }
 
             if (styleEl.tagName === 'LINK') {
                 const href = styleEl.getAttribute('href');
-                if (dom.exists(`link[href="${href}"]`)) return;
-
                 const link = dom.create('link', {
                     rel: 'stylesheet',
                     href: href,
@@ -32,6 +40,13 @@ export class ResourceManager {
             }
 
             this.loadedResources.add(id);
+        });
+
+        document.querySelectorAll('[data-spa-resource="style"]').forEach(el => {
+            const resourceId = el.getAttribute('data-resource-id');
+            if (!currentStyleIds.has(resourceId)) {
+                el.remove();
+            }
         });
     }
 
