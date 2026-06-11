@@ -2,8 +2,6 @@ import { server_command } from '../message/server-command.js';
 import commands from './index.js';
 
 (function () {
-    // `commands` imported from `./commands/index.js`
-
     const el = {
         commandsWrap: document.querySelector('.commands'),
         list: document.querySelector('.commands .list'),
@@ -119,8 +117,6 @@ import commands from './index.js';
         renderList();
     }
 
-    // Команды реализуются в отдельных модулях в `./commands/`
-
     function executeCurrent() {
         const value = (el.input.value || '').trim();
         const token = value.split(/\s+/)[0] || '';
@@ -193,8 +189,6 @@ import commands from './index.js';
         ev.preventDefault();
         executeCurrent();
     });
-
-    // Initialize render
     filterCommands('/');
 
 })();

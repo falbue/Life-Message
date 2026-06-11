@@ -1,10 +1,8 @@
 import { getAllContacts, toggleFavoriteStatus, saveContact } from './db.js';
 
-// === Глобальные флаги и кэш ===
 let isUpdating = false;
 let contactsCache = [];
 
-// Функция создания HTML карточки
 function createCardHTML(contact) {
     const isFavClass = contact.isFavorite ? 'iconoir-star-solid' : 'iconoir-star';
 
@@ -76,40 +74,32 @@ async function renderSection(selector, contacts) {
     container.innerHTML = contacts.map(createCardHTML).join('');
 }
 
-// === ОДНОКРАТНАЯ инициализация событий на document ===
 function setupGlobalEvents() {
-    // Вешаем слушатель один раз на весь документ
     document.addEventListener('click', async (e) => {
         const favBtn = e.target.closest('.btn-fav');
         if (favBtn) {
             e.preventDefault();
 
-            // Блокировка быстрых повторных кликов
             if (isUpdating) return;
             isUpdating = true;
 
             const id = favBtn.dataset.id;
             const icon = favBtn.querySelector('i');
 
-            // 1. Оптимистичное обновление иконки (мгновенный отклик)
             const willBeFavorite = !icon.classList.contains('iconoir-star-solid');
             icon.className = willBeFavorite ? 'iconoir-star-solid' : 'iconoir-star';
 
             try {
-                // 2. Асинхронное обновление БД
                 await toggleFavoriteStatus(id);
-                // 3. Полная перерисовка списков (контакты "перелетят" в нужную секцию)
                 await initContacts();
             } catch (err) {
                 console.error("Ошибка обновления:", err);
-                // Если ошибка - возвращаем иконку обратно (откат)
                 icon.className = willBeFavorite ? 'iconoir-star' : 'iconoir-star-solid';
             } finally {
                 isUpdating = false;
             }
         }
 
-        // Обработка кнопки редактирования
         const editBtn = e.target.closest('.btn-edit');
         if (editBtn) {
             e.preventDefault();
@@ -121,20 +111,17 @@ function setupGlobalEvents() {
 
 export async function initContacts() {
     try {
-        // Читаем из БД
         const allContacts = await getAllContacts();
-        contactsCache = allContacts; // Сохраняем в кэш (можно использовать в будущем)
+        contactsCache = allContacts;
 
         const favorites = allContacts.filter(c => c.isFavorite);
         const nonFavorites = allContacts.filter(c => !c.isFavorite);
 
-        // Рендерим
         await renderSection('#favorite-section', favorites);
         await renderSection('#all-section', nonFavorites);
     } catch (err) {
         console.error("Ошибка инициализации контактов:", err);
     }
-    // Важно: не сбрасываем isUpdating здесь, это делает обработчик клика
 }
 
 export async function addNewContact(contactData) {
@@ -143,8 +130,7 @@ export async function addNewContact(contactData) {
     await initContacts();
 }
 
-// === Автозапуск ===
 document.addEventListener('DOMContentLoaded', () => {
-    setupGlobalEvents(); // Вешаем события ОДИН РАЗ
-    initContacts();      // Загружаем данные
+    setupGlobalEvents();
+    initContacts();
 });

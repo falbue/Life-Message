@@ -1,4 +1,3 @@
-// Простая логика очистки поля ввода при нажатии на кнопку сброса
 document.addEventListener('DOMContentLoaded', () => {
     const resetBtn = document.getElementById('reset');
     const input = document.getElementById('inputMessage');

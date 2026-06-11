@@ -70,3 +70,7 @@
     background-color: var](--base-theme-color);
     filter: hue-rotate(calc(var(--hue-target, 0deg) - var(--hue-offset)));
 }
+
+.adaptive {
+    color: var(--accent);
+}

@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
         username: localStorage.getItem('username') || 'falbue'
     };
 
-    // Инициализируем менеджер пользователей
     if (window.UsersManager) {
         window.UsersManager.init(userData.senderId);
     }

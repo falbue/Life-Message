@@ -15,7 +15,7 @@
         }
 
         const fileName = menuName.endsWith(".html") ? menuName : `${menuName}.html`;
-        const response = await fetch(`/static/menus/${fileName}`);
+        const response = await fetch(`/menus/${fileName}`);
 
         if (!response.ok) {
             throw new Error(`Не удалось загрузить меню: ${menuName}`);

@@ -1,17 +1,9 @@
-@media (prefers-color-scheme: light) {
-    :root {
-        --input-placeholder: var(--light-lavender);
-        --input-border-color: var(--soft-purple);
-    }
-}
+:root {
+    color-scheme: light dark;
+    --input-placeholder: light-dark(var(--light-lavender), var(--deep-indigo));
+    --input-border-color: light-dark(var(--pale-mauve), var(--dark-plum));
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --input-placeholder: var(--deep-indigo);
-        --input-border-color: var(--dark-plum);
-        --input-border-color-active: var(--soft-purple);
-    }
-
+    --input-border-color-active: var(--soft-purple);
 }
 
 input {

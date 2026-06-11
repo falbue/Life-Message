@@ -1,0 +1,32 @@
+{
+    "routes": [
+        {
+            "path": "/",
+            "page": "home",
+            "seo": {
+                "title": "Life Message",
+                "description": "Анонимный чат в реальном времени",
+                "keywords": "chat, anonymous",
+                "author": "falbue",
+                "robots": "index, nofollow",
+                "ogTitle": "Life Message",
+                "ogDescription": "Общение в реальном времени!",
+                "ogImage": "/static/icons/og-image.png"
+            }
+        },
+        {
+            "path": "/contacts",
+            "page": "contacts",
+            "seo": {
+                "title": "Контакты",
+                "description": "Анонимный чат в реальном времени",
+                "keywords": "chat, anonymous",
+                "author": "falbue",
+                "robots": "index, nofollow",
+                "ogTitle": "Life Message",
+                "ogDescription": "Общение в реальном времени!",
+                "ogImage": "/static/icons/og-image.png"
+            }
+        }
+    ]
+}

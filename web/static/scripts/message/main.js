@@ -3,7 +3,6 @@ import socketClient from '../socket-client.js';
 import { server_command } from './server-command.js';
 import { adjustFontSize } from '../ui/auto-fonts.js';
 
-// === Глобальные переменные (не зависят от DOM) ===
 const getUsername = () => localStorage.getItem('username') || '';
 
 let senderId = null;
@@ -14,10 +13,9 @@ try {
 }
 if (!senderId) {
     senderId = Math.random().toString(36).substr(2, 9);
-    try { localStorage.setItem('senderId', senderId); } catch (e) { /* ignore */ }
+    try { localStorage.setItem('senderId', senderId); } catch (e) { }
 }
 
-// === Отправка сообщения (функция, не зависит от DOM) ===
 export function sendMessage(text) {
     const messageText = String(text ?? '');
     socketClient.emitUpdate({
@@ -27,13 +25,11 @@ export function sendMessage(text) {
     });
 }
 
-// === Инициализация после загрузки DOM ===
 document.addEventListener('DOMContentLoaded', () => {
     const chatId = window.location.pathname.split('/').pop() || window.CHAT_ID;
     const inputMessage = document.getElementById('inputMessage');
     const displayMessage = document.getElementById('displayMessage');
 
-    // === Обработка ввода: отправка при каждом изменении ===
     inputMessage?.addEventListener('input', () => {
         const rawText = inputMessage.value;
         if (!rawText) return;
@@ -46,10 +42,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         sendMessage(messageText);
-        // Поле НЕ очищается - пользователь видит свой текст
     });
 
-    // === Получение сообщений ===
     const unsubscribe = socketClient.onReceive((data) => {
         if (data.sender_id === senderId) return;
 
@@ -68,7 +62,6 @@ document.addEventListener('DOMContentLoaded', () => {
         unsubscribe(chatId);
     }
 
-    // === Инициализация ===
     sendMessage(`Пользователь ${getUsername()} подключился`);
     server_command('Поделитесь ссылкой, что бы начать общение!');
 
@@ -86,7 +79,6 @@ document.addEventListener('DOMContentLoaded', () => {
     inputMessage?.focus();
 });
 
-// === Очистка при уходе ===
 window.addEventListener('beforeunload', () => {
     sendMessage(`Пользователь ${getUsername()} отключился`);
     socketClient.disconnect();

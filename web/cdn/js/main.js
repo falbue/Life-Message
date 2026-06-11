@@ -1,6 +1,6 @@
+import './pages/menu.js';
+import './pages/templates.js';
 import notification from './notification.js';
-import './menu.js';
-import './templates.js';
 import { initNavigation } from './ui/header.js';
 import './ui/color.js';
 import './utils/field-sync.js.js';

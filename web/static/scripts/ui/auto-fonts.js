@@ -1,5 +1,4 @@
 const chat = document.getElementById('displayMessage');
-
 function adjustFontSize() {
     const text = chat.innerText.trim();
     const length = text.length;
@@ -20,14 +19,10 @@ function adjustFontSize() {
         newSize = maxSize - ratio * (maxSize - minSize);
     }
 
-    // Исправлено: правильное использование clamp(min, preferred, max)
     chat.style.fontSize = `${newSize}rem`;
 }
-
-// Вызываем функцию при загрузке страницы
 document.addEventListener('DOMContentLoaded', adjustFontSize);
 
-// Если текст меняется динамически, используйте MutationObserver
 const observer = new MutationObserver(adjustFontSize);
 observer.observe(chat, {
     childList: true,

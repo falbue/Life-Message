@@ -58,14 +58,12 @@ wss.on('connection', (ws, req) => {
                 });
             }
         } catch (e) {
-            // Игнорируем невалидные данные
         }
     });
 
     ws.on('close', () => {
         rooms.get(room_id).delete(ws);
 
-        // Уведомляем комнату об отключении, если пользователь успел представиться
         if (ws.userData) {
             const leaveNotification = {
                 type: 'user_left',

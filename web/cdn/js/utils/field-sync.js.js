@@ -59,11 +59,9 @@ class LocalStorageFieldManager {
             let newElementsWithField = false;
 
             for (const mutation of mutations) {
-                // Проверяем добавленные узлы
                 if (mutation.addedNodes.length > 0) {
                     for (const node of mutation.addedNodes) {
                         if (node.nodeType === Node.ELEMENT_NODE) {
-                            // Проверяем сам элемент и его descendants
                             if (node.hasAttribute?.('data-field') ||
                                 node.querySelector?.('[data-field]')) {
                                 newElementsWithField = true;
@@ -117,7 +115,6 @@ class LocalStorageFieldManager {
     }
 
     setupInputListeners() {
-        // Используем делегирование событий
         document.addEventListener('input', (event) => {
             this.handleFieldChange(event.target);
         });
